@@ -49,6 +49,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
         {children}
       </body>
     </html>

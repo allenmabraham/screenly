@@ -1,13 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { LibraryNav } from "@/components/library-nav";
+import { AppHeader } from "@/components/layout/app-header";
 import { MemberManager } from "@/components/member-manager";
 import { listWorkspaceAccess } from "@/features/auth/invitations";
-import {
-  canManageWorkspace,
-  listUserWorkspaces,
-} from "@/features/auth/users";
+import { canManageWorkspace, listUserWorkspaces } from "@/features/auth/users";
 import { getSessionAuth, SESSION_COOKIE_NAME } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -30,25 +27,31 @@ export default async function MembersPage() {
   ]);
 
   return (
-    <main className="library-shell token-page">
-      <LibraryNav
+    <>
+      <AppHeader
+        active="settings"
         activeWorkspace={authentication.workspace}
+        canManage
+        user={authentication.user}
         workspaces={workspaces}
       />
-      <header className="library-heading">
-        <div>
-          <p className="eyebrow">{authentication.workspace.name}</p>
-          <h1>Members</h1>
-          <p className="page-description">
-            Invite teammates and manage outstanding workspace invitations.
-          </p>
-        </div>
-      </header>
-      <MemberManager
-        currentRole={authentication.workspace.role}
-        invitations={access.invitations}
-        members={access.members}
-      />
-    </main>
+
+      <main className="shell page-shell" id="main">
+        <header className="page-head">
+          <div>
+            <p className="eyebrow">{authentication.workspace.name}</p>
+            <h1 className="page-head__title">Members</h1>
+            <p className="page-head__description">
+              Invite teammates and manage outstanding workspace invitations.
+            </p>
+          </div>
+        </header>
+        <MemberManager
+          currentRole={authentication.workspace.role}
+          invitations={access.invitations}
+          members={access.members}
+        />
+      </main>
+    </>
   );
 }

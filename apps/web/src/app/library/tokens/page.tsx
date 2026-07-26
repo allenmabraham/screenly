@@ -1,17 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { LibraryNav } from "@/components/library-nav";
+import { AppHeader } from "@/components/layout/app-header";
 import { RecorderTokenManager } from "@/components/recorder-token-manager";
 import { listRecorderTokens } from "@/features/auth/recorder-tokens";
-import {
-  canManageWorkspace,
-  listUserWorkspaces,
-} from "@/features/auth/users";
-import {
-  getSessionAuth,
-  SESSION_COOKIE_NAME,
-} from "@/lib/session";
+import { canManageWorkspace, listUserWorkspaces } from "@/features/auth/users";
+import { getSessionAuth, SESSION_COOKIE_NAME } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -33,24 +27,29 @@ export default async function RecorderTokensPage() {
   ]);
 
   return (
-    <main className="library-shell token-page">
-      <LibraryNav
+    <>
+      <AppHeader
+        active="settings"
         activeWorkspace={authentication.workspace}
+        canManage
+        user={authentication.user}
         workspaces={workspaces}
       />
 
-      <header className="library-heading">
-        <div>
-          <p className="eyebrow">Workspace settings</p>
-          <h1>Recorder tokens</h1>
-          <p className="page-description">
-            Create a separate token for each Mac. Revoking one immediately
-            blocks new uploads without affecting existing recordings.
-          </p>
-        </div>
-      </header>
+      <main className="shell page-shell" id="main">
+        <header className="page-head">
+          <div>
+            <p className="eyebrow">Workspace settings</p>
+            <h1 className="page-head__title">Recorder tokens</h1>
+            <p className="page-head__description">
+              Create a separate token for each Mac. Revoking one immediately
+              blocks new uploads without affecting existing recordings.
+            </p>
+          </div>
+        </header>
 
-      <RecorderTokenManager initialTokens={tokens} />
-    </main>
+        <RecorderTokenManager initialTokens={tokens} />
+      </main>
+    </>
   );
 }
