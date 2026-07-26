@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { BoltIcon, SlackIcon, UsersIcon } from "@/components/ui/icons";
+import { BoltIcon, ChatIcon, UsersIcon } from "@/components/ui/icons";
 
 const HIGHLIGHTS = [
   {
@@ -11,7 +11,7 @@ const HIGHLIGHTS = [
     body: "Paste it in chat while the upload is still running.",
   },
   {
-    Icon: SlackIcon,
+    Icon: ChatIcon,
     title: "Plays inside Slack",
     body: "Shared links unfurl into an inline player, then update when processing finishes.",
   },
@@ -50,7 +50,9 @@ export function AuthShell({
         <div className="auth__card">
           <p className="eyebrow">{eyebrow}</p>
           <h1 className="auth__title">{title}</h1>
-          {description ? <p className="auth__description">{description}</p> : null}
+          {description ? (
+            <p className="auth__description">{description}</p>
+          ) : null}
           {children}
           {footer ? <div className="auth__footer">{footer}</div> : null}
         </div>

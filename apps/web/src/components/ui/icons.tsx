@@ -11,7 +11,10 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, "children"> & {
   size?: number;
 };
 
-function Icon({ size = 18, ...props }: IconProps & { children?: React.ReactNode }) {
+function Icon({
+  size = 18,
+  ...props
+}: IconProps & { children?: React.ReactNode }) {
   return (
     <svg
       aria-hidden="true"
@@ -39,8 +42,24 @@ export function PlayIcon(props: IconProps) {
 export function PauseIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <rect x="6.5" y="5" width="3.6" height="14" rx="1.2" fill="currentColor" stroke="none" />
-      <rect x="13.9" y="5" width="3.6" height="14" rx="1.2" fill="currentColor" stroke="none" />
+      <rect
+        x="6.5"
+        y="5"
+        width="3.6"
+        height="14"
+        rx="1.2"
+        fill="currentColor"
+        stroke="none"
+      />
+      <rect
+        x="13.9"
+        y="5"
+        width="3.6"
+        height="14"
+        rx="1.2"
+        fill="currentColor"
+        stroke="none"
+      />
     </Icon>
   );
 }
@@ -84,7 +103,10 @@ export function MaximizeIcon(props: IconProps) {
 export function MinimizeIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M9 4v5H4m11 11v-5h5M15 9V4m0 5h5M9 15v5m0-5H4" stroke="currentColor" />
+      <path
+        d="M9 4v5H4m11 11v-5h5M15 9V4m0 5h5M9 15v5m0-5H4"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -93,7 +115,15 @@ export function PipIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" />
-      <rect x="12" y="11.5" width="7" height="6" rx="1.4" fill="currentColor" stroke="none" />
+      <rect
+        x="12"
+        y="11.5"
+        width="7"
+        height="6"
+        rx="1.4"
+        fill="currentColor"
+        stroke="none"
+      />
     </Icon>
   );
 }
@@ -156,7 +186,10 @@ export function DownloadIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M12 4v10m0 0 4-4m-4 4-4-4" stroke="currentColor" />
-      <path d="M4.5 17.5v1a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1" stroke="currentColor" />
+      <path
+        d="M4.5 17.5v1a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -165,7 +198,10 @@ export function CopyIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <rect x="9" y="9" width="11" height="11" rx="2.4" stroke="currentColor" />
-      <path d="M15 5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v8A1.5 1.5 0 0 0 5.5 15" stroke="currentColor" />
+      <path
+        d="M15 5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v8A1.5 1.5 0 0 0 5.5 15"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -191,8 +227,14 @@ export function MoreIcon(props: IconProps) {
 export function TrashIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M4.5 7h15M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7" stroke="currentColor" />
-      <path d="M6.5 7l.8 11.2A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.8L17.5 7" stroke="currentColor" />
+      <path
+        d="M4.5 7h15M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7"
+        stroke="currentColor"
+      />
+      <path
+        d="M6.5 7l.8 11.2A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.8L17.5 7"
+        stroke="currentColor"
+      />
       <path d="M10.5 11v5.5M13.5 11v5.5" stroke="currentColor" />
     </Icon>
   );
@@ -201,7 +243,10 @@ export function TrashIcon(props: IconProps) {
 export function PencilIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M4.5 19.5h3.2L19 8.2a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L4.5 16.3v3.2Z" stroke="currentColor" />
+      <path
+        d="M4.5 19.5h3.2L19 8.2a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L4.5 16.3v3.2Z"
+        stroke="currentColor"
+      />
       <path d="m14.5 6.5 3 3" stroke="currentColor" />
     </Icon>
   );
@@ -259,8 +304,14 @@ export function UsersIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <circle cx="9.5" cy="8.5" r="3.2" stroke="currentColor" />
-      <path d="M3.8 19.2c.6-3 3-4.7 5.7-4.7s5.1 1.7 5.7 4.7" stroke="currentColor" />
-      <path d="M16 5.6a3 3 0 0 1 0 5.8M17.2 14.9c2 .5 3.4 2 3.9 4.3" stroke="currentColor" />
+      <path
+        d="M3.8 19.2c.6-3 3-4.7 5.7-4.7s5.1 1.7 5.7 4.7"
+        stroke="currentColor"
+      />
+      <path
+        d="M16 5.6a3 3 0 0 1 0 5.8M17.2 14.9c2 .5 3.4 2 3.9 4.3"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -274,13 +325,18 @@ export function KeyIcon(props: IconProps) {
   );
 }
 
-export function SlackIcon(props: IconProps) {
+export function ChatIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M9.2 4.6a1.6 1.6 0 1 1 3.2 0v4.6a1.6 1.6 0 1 1-3.2 0V4.6Z" stroke="currentColor" />
-      <path d="M14.8 11.6a1.6 1.6 0 1 1 0 3.2h-4.6a1.6 1.6 0 1 1 0-3.2h4.6Z" stroke="currentColor" />
-      <path d="M4.6 9.2a1.6 1.6 0 1 0 0 3.2h4.6" stroke="currentColor" />
-      <path d="M11.6 14.8a1.6 1.6 0 1 0 3.2 0v-4.6" stroke="currentColor" />
+      <path
+        d="M4 6.6A2.6 2.6 0 0 1 6.6 4h10.8A2.6 2.6 0 0 1 20 6.6v7.2a2.6 2.6 0 0 1-2.6 2.6H10l-4.4 3.2a.6.6 0 0 1-.96-.48v-2.8A2.6 2.6 0 0 1 4 13.8V6.6Z"
+        stroke="currentColor"
+      />
+      <path
+        d="M10.4 8.2 9.6 12.4M14.4 8.2l-.8 4.2M9 9.6h6M8.6 11.6h6"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
     </Icon>
   );
 }
@@ -297,7 +353,10 @@ export function ClockIcon(props: IconProps) {
 export function BoltIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M13.5 3 6 13.5h4.5L10 21l7.5-10.5H13l.5-7.5Z" stroke="currentColor" />
+      <path
+        d="M13.5 3 6 13.5h4.5L10 21l7.5-10.5H13l.5-7.5Z"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -305,8 +364,14 @@ export function BoltIcon(props: IconProps) {
 export function SparkleIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M12 4l1.5 4.5L18 10l-4.5 1.5L12 16l-1.5-4.5L6 10l4.5-1.5L12 4Z" stroke="currentColor" />
-      <path d="M18 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8Z" stroke="currentColor" />
+      <path
+        d="M12 4l1.5 4.5L18 10l-4.5 1.5L12 16l-1.5-4.5L6 10l4.5-1.5L12 4Z"
+        stroke="currentColor"
+      />
+      <path
+        d="M18 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8Z"
+        stroke="currentColor"
+      />
     </Icon>
   );
 }
@@ -314,10 +379,7 @@ export function SparkleIcon(props: IconProps) {
 export function AlertTriangleIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path
-        d="M12 4.8 3.6 19.2h16.8L12 4.8Z"
-        stroke="currentColor"
-      />
+      <path d="M12 4.8 3.6 19.2h16.8L12 4.8Z" stroke="currentColor" />
       <path d="M12 10v4" stroke="currentColor" />
       <circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none" />
     </Icon>
@@ -344,7 +406,10 @@ export function FilmIcon(props: IconProps) {
 export function ShieldIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M12 3.5 5 6v5.5c0 4 2.9 7.4 7 8.9 4.1-1.5 7-4.9 7-8.9V6l-7-2.5Z" stroke="currentColor" />
+      <path
+        d="M12 3.5 5 6v5.5c0 4 2.9 7.4 7 8.9 4.1-1.5 7-4.9 7-8.9V6l-7-2.5Z"
+        stroke="currentColor"
+      />
       <path d="m9 12 2.2 2.2L15.5 10" stroke="currentColor" />
     </Icon>
   );

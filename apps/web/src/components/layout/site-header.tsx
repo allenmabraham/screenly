@@ -28,7 +28,7 @@ export function SiteHeader({
         <Logo />
 
         {showNav ? (
-          <nav aria-label="Main" className="app-bar__nav">
+          <nav aria-label="Main" className="app-bar__nav site-nav">
             <Link className="nav-link" href="/v/demo1234">
               Demo
             </Link>

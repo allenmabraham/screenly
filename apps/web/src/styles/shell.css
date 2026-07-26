@@ -324,6 +324,12 @@
 
 /* ---------------------------------------------------------- responsive */
 
+@media (max-width: 560px) {
+  .site-nav {
+    display: none;
+  }
+}
+
 @media (max-width: 720px) {
   .app-bar__nav {
     margin-left: var(--s-1);

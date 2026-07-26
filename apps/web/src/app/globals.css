@@ -3,8 +3,7 @@
  *
  * Order matters: tokens define the variables everything else consumes, base
  * sets element defaults, primitives build the reusable component layer, and the
- * screen stylesheets layer on top. `legacy.css` holds the pre-redesign rules
- * that are still in use and shrinks with every migrated screen.
+ * screen stylesheets layer on top.
  */
 @import "tailwindcss";
 
@@ -17,4 +16,4 @@
 @import "../styles/auth.css";
 @import "../styles/download.css";
 @import "../styles/settings.css";
-@import "../styles/legacy.css";
+@import "../styles/marketing.css";

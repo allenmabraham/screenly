@@ -9,7 +9,7 @@ import {
   DownloadIcon,
   FilmIcon,
   ShieldIcon,
-  SlackIcon,
+  ChatIcon,
   UsersIcon,
 } from "@/components/ui/icons";
 import { LogoMark } from "@/components/ui/logo";
@@ -37,7 +37,7 @@ const FEATURES = [
     body: "Capture any display, a single window, or drag out an area.",
   },
   {
-    Icon: SlackIcon,
+    Icon: ChatIcon,
     title: "Slack-native playback",
     body: "Pasted links unfurl into an inline player and update when ready.",
   },
@@ -113,9 +113,7 @@ export default async function DownloadPage() {
             <div className="alert alert--warning download__unavailable">
               <ShieldIcon className="alert__icon" size={18} />
               <div>
-                <p className="alert__title">
-                  No signed release published yet
-                </p>
+                <p className="alert__title">No signed release published yet</p>
                 <p className="alert__body">
                   The first notarized Mac build has not been published. Ask an
                   admin to run the release workflow, then reload this page.
