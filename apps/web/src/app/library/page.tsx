@@ -154,10 +154,13 @@ async function VideoGrid({
   return (
     <>
       <section aria-label="Recordings" className="video-grid">
-        {videos.map((video) => (
+        {videos.map((video, index) => (
           <VideoCard
             currentUserId={currentUserId}
             key={video.id}
+            // The first row is above the fold on every breakpoint, so it loads
+            // eagerly; lazy-loading it delayed the largest contentful paint.
+            priority={index < 4}
             video={video}
           />
         ))}

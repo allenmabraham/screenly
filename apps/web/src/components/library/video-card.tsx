@@ -58,9 +58,12 @@ function shouldLoadPreview() {
 export function VideoCard({
   video,
   currentUserId,
+  priority = false,
 }: {
   video: LibraryVideo;
   currentUserId?: string;
+  /** First row of the grid: load eagerly so it can be the LCP element. */
+  priority?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -172,8 +175,9 @@ export function VideoCard({
             alt=""
             className="vcard__image"
             decoding="async"
+            fetchPriority={priority ? "high" : "auto"}
             height={270}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
             src={video.thumbnailUrl}
             width={480}
           />
