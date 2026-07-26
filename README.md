@@ -118,6 +118,74 @@ update delayed** when it does not have enough current data. It does not invent
 an ETA before the worker has measured the recording. Existing videos and jobs
 created before the progress migration continue to use these fallback states.
 
+While the viewer is waiting it shows the pipeline as a four-step tracker
+(**Upload → Optimize → Preview → Ready**) with the worker's real stage,
+percentage and estimate. Polling stops entirely while the browser tab is hidden
+and resumes with an immediate refresh when the viewer comes back, so a
+backgrounded share link costs nothing.
+
+## Web UI and design system
+
+The web interface is built from one static stylesheet and a small set of
+primitives. There is no runtime styling library, so styles cost nothing to
+execute and ship as a single cacheable file (~64 kB, ~13 kB compressed).
+
+```text
+apps/web/src/styles/
+  tokens.css      colour, type, space, radius, elevation and motion tokens
+  base.css        element defaults, focus rings, ambient background, utilities
+  primitives.css  buttons, fields, badges, cards, menus, toasts, skeletons
+  shell.css       headers, footer, page headings, settings nav, status pages
+  viewer.css      video stage, player chrome, processing and failure states
+  library.css     toolbar, recording grid, cards, who-watched popover
+  auth.css / download.css / settings.css / marketing.css   per-screen layers
+apps/web/src/components/
+  ui/             design-system primitives (Button, Menu, Toast, Badge, …)
+  layout/         SiteHeader, AppHeader, SiteFooter, SettingsNav
+  library/ video/ settings/ auth/ marketing/   feature components
+```
+
+Conventions worth knowing before changing the UI:
+
+- **Semantic classes, not utilities.** Components reference classes such as
+  `btn btn--primary` or `vcard__title`. Tailwind is still installed and the
+  tokens are exposed to it through `@theme inline`, but no utility classes are
+  used in application code.
+- **Theming.** Light values live on `:root`, dark values in a single
+  `[data-theme="dark"]` block. A small inline script in the root layout resolves
+  the stored preference (`screenly-theme`: `system`, `light` or `dark`) before
+  first paint, so there is no flash of the wrong theme. The three-state control
+  lives in the header, and in the user menu on small screens.
+- **Server components by default.** Only leaves that need browser APIs are
+  `"use client"`: the theme toggle, workspace and user menus, library toolbar,
+  video card actions, player, processing state, toasts and copy buttons. Marketing
+  and auth pages therefore ship almost no client JavaScript.
+- **Non-component exports must not live in `"use client"` modules.** They become
+  client references and cannot be read on the server, which is why
+  `lib/library-url.ts` and `components/video/player-shortcuts.ts` are separate.
+- **The player is progressive enhancement.** The server renders
+  `<video controls>`; the custom control bar replaces the native controls after
+  hydration. No-JavaScript visitors and the Slack embed keep a working player.
+  Playback progress is painted from a `requestAnimationFrame` loop that writes a
+  composited transform straight to the DOM, so playing a video causes no React
+  re-render per frame, and the loop stops while the tab is hidden.
+- **Images.** Thumbnails are plain `<img>` elements with intrinsic dimensions:
+  the URLs are presigned and rotate hourly, so `next/image` would re-optimise
+  them constantly for no benefit. The first row loads eagerly for the largest
+  contentful paint; the rest are lazy. Hover previews reuse the animated
+  `preview.webp` the processor already generates, fetched on demand from
+  `/api/library/videos/:videoId/preview` and skipped for reduced-motion,
+  save-data and touch users.
+- **Expensive effects are rationed.** `backdrop-filter` is limited to the sticky
+  header and the player's centre play button, both behind `@supports`. The
+  ambient gradient is one fixed layer rather than `background-attachment: fixed`,
+  which repaints the viewport on every scroll frame.
+
+Accessibility is part of the definition of done: axe-core reports no violations
+across every route in both themes at 1440px and 390px, all interactive elements
+have visible focus rings, menus trap focus and return it to their trigger, and
+every route is operable with the keyboard alone.
+
 ## Slack inline playback
 
 Slack only renders inline video from custom providers through an installed
@@ -586,3 +654,10 @@ docker build -f apps/worker/Dockerfile .
 # On macOS:
 xcodebuild -project apps/mac/Screenly.xcodeproj -scheme Screenly build
 ```
+
+`pnpm test` covers the pure helpers (`format`, `format-processing`, `processing`,
+`release`, `slack`, `gcp-auth`) and the worker's config, loop, progress and media
+modules. UI behaviour is verified against a running instance: point a browser at
+a seeded local database and check the viewer, library, settings and auth flows,
+including playback, keyboard shortcuts, hover previews, live processing updates,
+and both themes at desktop and mobile widths.
