@@ -60,7 +60,7 @@ function applyPreference(preference: ThemePreference) {
   root.style.colorScheme = isDark ? "dark" : "light";
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string } = {}) {
   const preference = useSyncExternalStore(
     preferenceStore.subscribe,
     preferenceStore.getSnapshot,
@@ -91,7 +91,7 @@ export function ThemeToggle() {
   return (
     <div
       aria-label="Theme"
-      className="segmented segmented--icons theme-toggle"
+      className={`segmented segmented--icons theme-toggle${className ? ` ${className}` : ""}`}
       role="group"
     >
       {OPTIONS.map(({ value, label, Icon }) => (

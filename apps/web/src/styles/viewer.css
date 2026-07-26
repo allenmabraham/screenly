@@ -389,6 +389,8 @@
 .processing__title {
   color: #fff;
   font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 
 .processing__detail {
@@ -450,7 +452,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  color: rgba(255, 255, 255, 0.38);
+  /* 0.5 alpha over the stage measures 4.9:1; 0.38 failed WCAG AA. */
+  color: rgba(255, 255, 255, 0.5);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
 }
@@ -485,7 +488,8 @@
 
 .processing__note {
   margin-top: var(--s-5);
-  color: rgba(255, 255, 255, 0.4);
+  /* 0.52 alpha over the stage measures 5.3:1. */
+  color: rgba(255, 255, 255, 0.52);
   font-size: var(--text-2xs);
 }
 
@@ -513,6 +517,8 @@
 .viewer__failed-title {
   color: #fff;
   font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 
 .viewer__failed-body {

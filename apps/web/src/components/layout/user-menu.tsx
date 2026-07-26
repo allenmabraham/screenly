@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { DownloadIcon, KeyIcon, UsersIcon, XIcon } from "@/components/ui/icons";
 import { Menu } from "@/components/ui/menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function UserMenu({
   username,
@@ -41,6 +42,10 @@ export function UserMenu({
         </div>
       </div>
       <div className="menu__separator" />
+      <div className="menu__theme">
+        Appearance
+        <ThemeToggle />
+      </div>
       {canManage ? (
         <>
           <a className="menu__item" href="/library/members" role="menuitem">
@@ -58,7 +63,12 @@ export function UserMenu({
         Download the Mac app
       </a>
       <div className="menu__separator" />
-      <button className="menu__item menu__item--danger" onClick={signOut} role="menuitem" type="button">
+      <button
+        className="menu__item menu__item--danger"
+        onClick={signOut}
+        role="menuitem"
+        type="button"
+      >
         <XIcon size={16} />
         Sign out
       </button>

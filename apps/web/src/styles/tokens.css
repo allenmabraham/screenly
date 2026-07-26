@@ -42,15 +42,17 @@
   --accent-glow: rgba(87, 79, 224, 0.28);
 
   /* ------------------------------------------------------------- status */
-  --success: #0b7f55;
-  --success-soft: rgba(11, 127, 85, 0.12);
+  /* Status colours are also used as badge text on their own 12% tint, so each
+     one is dark enough to clear 4.5:1 in that combination. */
+  --success: #0a6b48;
+  --success-soft: rgba(10, 107, 72, 0.12);
   --warning: #8f5300;
   --warning-soft: rgba(143, 83, 0, 0.12);
   --danger: #c0362c;
   --danger-strong: #a52b22;
   --danger-soft: rgba(192, 54, 44, 0.1);
-  --info: #1c6fb8;
-  --info-soft: rgba(28, 111, 184, 0.12);
+  --info: #17629f;
+  --info-soft: rgba(23, 98, 159, 0.12);
 
   /* ---------------------------------------------------------- elevation */
   --shadow-xs: 0 1px 2px rgba(15, 16, 23, 0.05);

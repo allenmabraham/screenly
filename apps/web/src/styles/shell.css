@@ -11,6 +11,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+  min-height: 40px;
   color: var(--text);
   font-size: var(--text-body);
   font-weight: var(--weight-bold);
@@ -139,6 +140,23 @@
 
 .workspace-trigger__chevron {
   color: var(--text-faint);
+}
+
+.menu__theme {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+@media (max-width: 640px) {
+  .menu__theme {
+    display: flex;
+  }
 }
 
 .menu__user {
@@ -324,8 +342,21 @@
 
 /* ---------------------------------------------------------- responsive */
 
-@media (max-width: 560px) {
-  .site-nav {
+@media (max-width: 640px) {
+  /* Both navs duplicate links that are reachable from the logo, the user menu
+     and the footer, so they give up their space to the primary action. */
+  .site-nav,
+  .app-bar__nav {
+    display: none;
+  }
+
+  .workspace-trigger__name {
+    max-width: 84px;
+  }
+
+  /* The app bar has no room for the theme control at this width; the user menu
+     carries it instead (see .menu__theme). */
+  .app-bar__theme {
     display: none;
   }
 }

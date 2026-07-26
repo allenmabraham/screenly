@@ -60,7 +60,7 @@ export function AppHeader({
         <div className="app-bar__spacer" />
 
         <div className="app-bar__actions">
-          <ThemeToggle />
+          <ThemeToggle className="app-bar__theme" />
           <UserMenu
             canManage={canManage}
             email={user.email}

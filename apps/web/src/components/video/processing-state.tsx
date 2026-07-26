@@ -196,7 +196,7 @@ export function ProcessingState({
           aria-hidden="true"
         />
         <div>
-          <h2 className="processing__title">{heading}</h2>
+          <p className="processing__title">{heading}</p>
           <p className="processing__detail">{detail}</p>
         </div>
         {showPercent ? (

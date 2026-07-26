@@ -274,6 +274,9 @@
 .vcard__title {
   display: -webkit-box;
   overflow: hidden;
+  /* Two lines of reserved height: keeps card bodies aligned and keeps the block
+     link above the WCAG 2.2 target-size minimum. */
+  min-height: calc(2 * 1.38 * var(--text-body));
   color: var(--text);
   font-size: var(--text-body);
   font-weight: var(--weight-semibold);

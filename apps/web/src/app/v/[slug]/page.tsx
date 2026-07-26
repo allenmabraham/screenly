@@ -126,7 +126,7 @@ export default async function VideoPage({
                 <AlertTriangleIcon size={22} />
               </span>
               <div>
-                <h2 className="viewer__failed-title">Processing failed</h2>
+                <p className="viewer__failed-title">Processing failed</p>
                 <p className="viewer__failed-body">
                   Something went wrong while preparing this recording. The person
                   who recorded it can retry processing from their library.
