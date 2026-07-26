@@ -129,6 +129,18 @@ export function EyeIcon(props: IconProps) {
   );
 }
 
+export function EyeOffIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path
+        d="M4 4l16 16M9.9 5.2A9.6 9.6 0 0 1 12 5c6 0 9.5 6 9.5 6a17 17 0 0 1-2.6 3.3M6.4 7.5A17 17 0 0 0 2.5 11s3.5 6 9.5 6c1 0 2-.2 2.8-.5"
+        stroke="currentColor"
+      />
+      <path d="M10.2 10.3a2.5 2.5 0 0 0 3.5 3.5" stroke="currentColor" />
+    </Icon>
+  );
+}
+
 export function LinkIcon(props: IconProps) {
   return (
     <Icon {...props}>

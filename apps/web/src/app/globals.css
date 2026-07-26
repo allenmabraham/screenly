@@ -14,4 +14,7 @@
 @import "../styles/shell.css";
 @import "../styles/viewer.css";
 @import "../styles/library.css";
+@import "../styles/auth.css";
+@import "../styles/download.css";
+@import "../styles/settings.css";
 @import "../styles/legacy.css";
