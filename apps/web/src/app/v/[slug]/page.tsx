@@ -3,11 +3,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { CopyLinkButton } from "@/components/copy-link-button";
-import { ProcessingState } from "@/components/processing-state";
-import { VideoPlayer } from "@/components/video-player";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { ProcessingState } from "@/components/video/processing-state";
+import { PLAYER_SHORTCUTS } from "@/components/video/player-shortcuts";
+import { VideoPlayer } from "@/components/video/video-player";
 import { ViewTracker } from "@/components/view-tracker";
+import { Avatar } from "@/components/ui/avatar";
+import { CopyButton } from "@/components/ui/copy-button";
+import { AlertTriangleIcon, ClockIcon, EyeIcon } from "@/components/ui/icons";
+import { ToastProvider } from "@/components/ui/toast";
 import { getPublicVideoBySlug } from "@/features/videos/video-service";
+import { formatCount, formatDate, formatDuration } from "@/lib/format";
 import { getCookieSessionAuth } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +36,11 @@ export async function generateMetadata({
   const description = `Watch a recording shared by ${video.recorderName}.`;
   const canonicalUrl = absoluteAppUrl(`/v/${encodeURIComponent(video.slug)}`);
   const metadataThumbnailUrl =
-    absoluteAppUrl(
-      `/api/videos/${encodeURIComponent(video.slug)}/thumbnail`,
-    ) ?? video.thumbnailUrl;
+    absoluteAppUrl(`/api/videos/${encodeURIComponent(video.slug)}/thumbnail`) ??
+    video.thumbnailUrl;
   const metadataPlaybackUrl =
-    absoluteAppUrl(
-      `/api/videos/${encodeURIComponent(video.slug)}/playback`,
-    ) ?? video.playbackUrl;
+    absoluteAppUrl(`/api/videos/${encodeURIComponent(video.slug)}/playback`) ??
+    video.playbackUrl;
 
   return {
     title: video.title,
@@ -92,76 +97,118 @@ export default async function VideoPage({
     notFound();
   }
 
-  return (
-    <main className="viewer-shell">
-      <header className="viewer-header">
-        <Link className="brand" href="/">
-          <span className="brand-mark">
-            <span />
-          </span>
-          Screenly
-        </Link>
-        <div className="viewer-header-actions">
-          <Link
-            className="quiet-link"
-            href={authentication ? "/library" : "/login"}
-          >
-            {authentication ? "Open library" : "Sign in"}
-          </Link>
-          <CopyLinkButton />
-        </div>
-      </header>
+  const isReady = video.status === "ready" && video.playbackUrl;
+  const embedUrl = absoluteAppUrl(`/embed/v/${encodeURIComponent(video.slug)}`);
 
-      <section className="viewer-content">
-        <div className="video-stage">
-          {video.status === "ready" && video.playbackUrl ? (
+  return (
+    <ToastProvider>
+      <SiteHeader isSignedIn={Boolean(authentication)} />
+
+      <main className="shell shell--wide viewer" id="main">
+        <div className={`viewer__stage${isReady ? "" : " viewer__stage--state"}`}>
+          {isReady ? (
             <VideoPlayer
+              durationSeconds={video.durationSeconds}
               posterUrl={video.thumbnailUrl}
+              slug={video.slug}
               title={video.title}
-              videoUrl={video.playbackUrl}
+              videoUrl={video.playbackUrl!}
             />
-          ) : video.status === "uploading" ||
-            video.status === "processing" ? (
+          ) : video.status === "uploading" || video.status === "processing" ? (
             <ProcessingState
               initialProcessing={video.processing}
               slug={video.slug}
               status={video.status}
             />
           ) : (
-            <div className="processing-panel processing-panel-error">
-              <span className="error-icon">!</span>
+            <div className="viewer__failed">
+              <span className="viewer__failed-icon">
+                <AlertTriangleIcon size={22} />
+              </span>
               <div>
-                <h2>Processing failed</h2>
-                <p>The recorder can retry processing from their library.</p>
+                <h2 className="viewer__failed-title">Processing failed</h2>
+                <p className="viewer__failed-body">
+                  Something went wrong while preparing this recording. The person
+                  who recorded it can retry processing from their library.
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        <div className="video-details">
-          <div>
-            <h1>{video.title}</h1>
-            <p>
-              Recorded by {video.recorderName} ·{" "}
-              {formatRecordedDate(video.createdAt)}
-            </p>
+        <div className="viewer__details">
+          <div className="viewer__headline">
+            <h1 className="viewer__title">{video.title}</h1>
+            <div className="viewer__meta">
+              <span className="viewer__author">
+                <Avatar name={video.recorderName} size="sm" />
+                {video.recorderName}
+              </span>
+              <span aria-hidden="true" className="viewer__meta-dot" />
+              <time dateTime={video.createdAt}>
+                {formatDate(video.createdAt)}
+              </time>
+              {video.durationSeconds ? (
+                <>
+                  <span aria-hidden="true" className="viewer__meta-dot" />
+                  <span className="viewer__meta-item tabular">
+                    <ClockIcon size={14} />
+                    {formatDuration(video.durationSeconds)}
+                  </span>
+                </>
+              ) : null}
+              <span aria-hidden="true" className="viewer__meta-dot" />
+              <span className="viewer__meta-item tabular">
+                <EyeIcon size={15} />
+                {formatCount(video.viewCount, "view")}
+              </span>
+            </div>
           </div>
-          <div className="view-count">
-            <EyeIcon />
-            {video.viewCount.toLocaleString()}{" "}
-            {video.viewCount === 1 ? "view" : "views"}
+
+          <div className="viewer__actions">
+            <CopyButton
+              label="Copy link"
+              toastMessage="Share link copied to your clipboard."
+            />
+            {isReady && embedUrl ? (
+              <CopyButton
+                icon="copy"
+                label="Copy embed"
+                toastMessage="Embed code copied to your clipboard."
+                value={`<iframe src="${embedUrl}" width="640" height="360" frameborder="0" allow="fullscreen; picture-in-picture" allowfullscreen title="${video.title.replace(/"/g, "&quot;")}"></iframe>`}
+                variant="ghost"
+              />
+            ) : null}
+            <Link
+              className="btn btn--ghost"
+              href={authentication ? "/library" : "/login"}
+            >
+              {authentication ? "Open library" : "Sign in"}
+            </Link>
           </div>
         </div>
-      </section>
-      {video.status === "ready" ? <ViewTracker slug={video.slug} /> : null}
-    </main>
-  );
-}
 
-function formatRecordedDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-  }).format(new Date(value));
+        {isReady ? (
+          <details className="viewer__shortcuts">
+            <summary>Keyboard shortcuts</summary>
+            <dl>
+              {PLAYER_SHORTCUTS.map(([keys, description]) => (
+                <div key={keys}>
+                  <dt>
+                    <kbd>{keys}</kbd>
+                  </dt>
+                  <dd>{description}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        ) : null}
+      </main>
+
+      <SiteFooter />
+      {video.status === "ready" ? <ViewTracker slug={video.slug} /> : null}
+    </ToastProvider>
+  );
 }
 
 function absoluteAppUrl(pathname: string) {
@@ -175,23 +222,4 @@ function absoluteAppUrl(pathname: string) {
   } catch {
     return null;
   }
-}
-
-function EyeIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height="18"
-      viewBox="0 0 24 24"
-      width="18"
-    >
-      <path
-        d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-      <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.7" />
-    </svg>
-  );
 }

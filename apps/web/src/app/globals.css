@@ -12,4 +12,5 @@
 @import "../styles/base.css";
 @import "../styles/primitives.css";
 @import "../styles/shell.css";
+@import "../styles/viewer.css";
 @import "../styles/legacy.css";
