@@ -329,6 +329,28 @@
   background: var(--info-soft);
 }
 
+.badge--on-media {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  background: rgba(10, 11, 15, 0.72);
+}
+
+.badge--on-media.badge--info .badge__dot {
+  background: #6cb8f5;
+}
+
+.badge--on-media.badge--warning .badge__dot {
+  background: #f5b849;
+}
+
+.badge--on-media.badge--danger .badge__dot {
+  background: #ff8080;
+}
+
+.badge--on-media.badge--success .badge__dot {
+  background: #3ddc97;
+}
+
 .badge__dot {
   width: 6px;
   height: 6px;

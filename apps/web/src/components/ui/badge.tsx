@@ -39,14 +39,23 @@ const VIDEO_STATUS: Record<
 
 export function VideoStatusBadge({
   status,
+  onMedia = false,
   className,
 }: {
   status: "uploading" | "processing" | "ready" | "failed";
+  /** Use media-safe contrast when the badge sits on a video thumbnail. */
+  onMedia?: boolean;
   className?: string;
 }) {
   const { tone, label } = VIDEO_STATUS[status];
   return (
-    <Badge className={className} dot tone={tone}>
+    <Badge
+      className={[onMedia ? "badge--on-media" : null, className]
+        .filter(Boolean)
+        .join(" ")}
+      dot
+      tone={tone}
+    >
       {label}
     </Badge>
   );

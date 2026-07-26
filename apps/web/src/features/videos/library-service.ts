@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, asc, desc, eq, ilike } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import { videos, videoViews } from "@/db/schema";
@@ -10,12 +10,27 @@ import {
 
 const LIBRARY_PAGE_SIZE = 50;
 
+export const LIBRARY_SORTS = ["newest", "oldest", "views"] as const;
+export type LibrarySort = (typeof LIBRARY_SORTS)[number];
+
+export function isLibrarySort(value: unknown): value is LibrarySort {
+  return LIBRARY_SORTS.includes(value as LibrarySort);
+}
+
 export async function listLibraryVideos(
   workspaceId: string,
   query?: string,
   ownerUserId?: string,
+  sort: LibrarySort = "newest",
 ) {
   const normalizedQuery = query?.trim();
+  const orderBy =
+    sort === "oldest"
+      ? asc(videos.createdAt)
+      : sort === "views"
+        ? desc(videos.viewCount)
+        : desc(videos.createdAt);
+
   const rows = await getDb()
     .select({
       id: videos.id,
@@ -25,6 +40,7 @@ export async function listLibraryVideos(
       ownerUserId: videos.ownerUserId,
       status: videos.status,
       thumbnailObjectKey: videos.thumbnailObjectKey,
+      previewObjectKey: videos.previewObjectKey,
       durationSeconds: videos.durationSeconds,
       viewCount: videos.viewCount,
       createdAt: videos.createdAt,
@@ -39,7 +55,7 @@ export async function listLibraryVideos(
           : undefined,
       ),
     )
-    .orderBy(desc(videos.createdAt))
+    .orderBy(orderBy)
     .limit(LIBRARY_PAGE_SIZE);
 
   return Promise.all(
@@ -49,9 +65,31 @@ export async function listLibraryVideos(
       thumbnailUrl: video.thumbnailObjectKey
         ? await getPlaybackUrl(video.thumbnailObjectKey)
         : null,
+      // Only a flag: the animated preview URL is fetched lazily on hover so 50
+      // extra signed URLs never ship inside the library HTML.
+      hasPreview: Boolean(video.previewObjectKey),
       thumbnailObjectKey: undefined,
+      previewObjectKey: undefined,
     })),
   );
+}
+
+/** Signed URL for the worker-generated animated preview, or null. */
+export async function getVideoPreviewUrl(
+  workspaceId: string,
+  videoId: string,
+) {
+  const [video] = await getDb()
+    .select({ previewObjectKey: videos.previewObjectKey })
+    .from(videos)
+    .where(and(eq(videos.id, videoId), eq(videos.workspaceId, workspaceId)))
+    .limit(1);
+
+  if (!video?.previewObjectKey) {
+    return null;
+  }
+
+  return getPlaybackUrl(video.previewObjectKey);
 }
 
 export async function listVideoViewers(workspaceId: string, videoId: string) {

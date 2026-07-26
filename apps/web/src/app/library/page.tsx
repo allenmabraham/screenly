@@ -1,35 +1,48 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { VideoCard } from "@/components/video-card";
-import { listLibraryVideos } from "@/features/videos/library-service";
-import { getCookieSessionAuth } from "@/lib/session";
+import { LibraryToolbar } from "@/components/library/library-toolbar";
+import { VideoCard } from "@/components/library/video-card";
+import { VideoGridSkeleton } from "@/components/library/video-grid-skeleton";
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FilmIcon, SearchIcon, UsersIcon } from "@/components/ui/icons";
 import { canManageWorkspace, listUserWorkspaces } from "@/features/auth/users";
-import Link from "next/link";
+import {
+  isLibrarySort,
+  listLibraryVideos,
+  type LibrarySort,
+} from "@/features/videos/library-service";
+import { libraryHref } from "@/lib/library-url";
+import { getCookieSessionAuth } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[]; mine?: string | string[] }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    mine?: string | string[];
+    sort?: string | string[];
+  }>;
 }) {
   const authentication = await getCookieSessionAuth();
   if (!authentication) {
     redirect("/login");
   }
 
-  const { q: rawQuery, mine: rawMine } = await searchParams;
+  const {
+    q: rawQuery,
+    mine: rawMine,
+    sort: rawSort,
+  } = await searchParams;
   const query = typeof rawQuery === "string" ? rawQuery.slice(0, 120) : "";
   const mineOnly = rawMine === "1";
-  const [videos, workspaces] = await Promise.all([
-    listLibraryVideos(
-      authentication.workspace.id,
-      query,
-      mineOnly ? authentication.user.id : undefined,
-    ),
-    listUserWorkspaces(authentication.user.id),
-  ]);
+  const sort: LibrarySort = isLibrarySort(rawSort) ? rawSort : "newest";
+  const workspaces = await listUserWorkspaces(authentication.user.id);
   const canManage = canManageWorkspace(authentication.workspace.role);
 
   return (
@@ -47,114 +60,117 @@ export default async function LibraryPage({
           <div>
             <h1 className="page-head__title">Team recordings</h1>
             <p className="page-head__description">
-              Everything shared in {authentication.workspace.name}.
+              Everything shared in {authentication.workspace.name}. Links work
+              the moment a recording starts uploading.
             </p>
-            <div className="filter-tabs" aria-label="Filter">
-              <Link
-                aria-current={mineOnly ? undefined : "page"}
-                className={mineOnly ? "" : "is-active"}
-                href={libraryHref(false, query)}
-              >
-                All recordings
-              </Link>
-              <Link
-                aria-current={mineOnly ? "page" : undefined}
-                className={mineOnly ? "is-active" : ""}
-                href={libraryHref(true, query)}
-              >
-                My recordings
-              </Link>
-            </div>
           </div>
-          <div className="page-head__actions">
-            {canManage ? (
-              <Link className="secondary-button" href="/library/members">
+          {canManage ? (
+            <div className="page-head__actions">
+              <ButtonLink href="/library/members" variant="secondary">
+                <UsersIcon size={16} />
                 Invite teammates
-              </Link>
-            ) : null}
-            <form className="search-form">
-              <SearchIcon />
-              <input
-                aria-label="Search recordings"
-                defaultValue={query}
-                name="q"
-                placeholder="Search by title"
-                type="search"
-              />
-              {mineOnly ? <input name="mine" type="hidden" value="1" /> : null}
-            </form>
-          </div>
+              </ButtonLink>
+            </div>
+          ) : null}
         </header>
 
-        {videos.length > 0 ? (
-          <section className="video-grid" aria-label="Recordings">
-            {videos.map((video) => (
-              <VideoCard
-                currentUserId={authentication.user.id}
-                key={video.id}
-                video={video}
-              />
-            ))}
-          </section>
-        ) : (
-          <section className="empty-library">
-            <span>
-              <SearchIcon />
-            </span>
-            <h2>
-              {query
-                ? "No matching recordings"
-                : mineOnly
-                  ? "No recordings of yours yet"
-                  : "No recordings yet"}
-            </h2>
-            <p>
-              {query
-                ? "Try a different title or clear your search."
-                : mineOnly
-                  ? "Recordings you upload from the Mac app while signed in will appear here."
-                  : "Recordings uploaded from the Mac app will appear here."}
-            </p>
-            {query || mineOnly ? (
-              <Link className="secondary-button" href="/library">
-                {query ? "Clear search" : "Show all recordings"}
-              </Link>
-            ) : null}
-          </section>
-        )}
+        <LibraryToolbar mineOnly={mineOnly} query={query} sort={sort} />
+
+        {/*
+          The grid streams inside its own Suspense boundary so the header and
+          toolbar are interactive while the query and thumbnail URLs resolve.
+          `key` restarts the boundary whenever the query changes.
+        */}
+        <Suspense
+          fallback={<VideoGridSkeleton />}
+          key={`${query}|${mineOnly}|${sort}`}
+        >
+          <VideoGrid
+            currentUserId={authentication.user.id}
+            mineOnly={mineOnly}
+            query={query}
+            sort={sort}
+            workspaceId={authentication.workspace.id}
+          />
+        </Suspense>
       </main>
     </>
   );
 }
 
-function libraryHref(mine: boolean, query: string) {
-  const params = new URLSearchParams();
-  if (query) {
-    params.set("q", query);
-  }
-  if (mine) {
-    params.set("mine", "1");
-  }
-  const search = params.toString();
-  return search ? `/library?${search}` : "/library";
-}
+async function VideoGrid({
+  workspaceId,
+  currentUserId,
+  query,
+  mineOnly,
+  sort,
+}: {
+  workspaceId: string;
+  currentUserId: string;
+  query: string;
+  mineOnly: boolean;
+  sort: LibrarySort;
+}) {
+  const videos = await listLibraryVideos(
+    workspaceId,
+    query,
+    mineOnly ? currentUserId : undefined,
+    sort,
+  );
 
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height="18"
-      viewBox="0 0 24 24"
-      width="18"
-    >
-      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="m16 16 4 4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.7"
+  if (videos.length === 0) {
+    return (
+      <EmptyState
+        actions={
+          query || mineOnly ? (
+            <ButtonLink href={libraryHref({})} variant="secondary">
+              {query ? "Clear search" : "Show all recordings"}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/download" variant="primary">
+              Get the Mac recorder
+            </ButtonLink>
+          )
+        }
+        description={
+          query
+            ? "Try a different title, or clear the search to see everything."
+            : mineOnly
+              ? "Recordings you upload from the Mac app while signed in appear here."
+              : "Record something with the Mac app and it will show up here the moment the upload starts."
+        }
+        icon={query ? <SearchIcon size={20} /> : <FilmIcon size={20} />}
+        title={
+          query
+            ? `No recordings match “${query}”`
+            : mineOnly
+              ? "You haven’t recorded anything yet"
+              : "No recordings yet"
+        }
       />
-    </svg>
+    );
+  }
+
+  return (
+    <>
+      <section aria-label="Recordings" className="video-grid">
+        {videos.map((video) => (
+          <VideoCard
+            currentUserId={currentUserId}
+            key={video.id}
+            video={video}
+          />
+        ))}
+      </section>
+      {videos.length >= 50 ? (
+        <p className="library-note">
+          Showing the 50 most recent recordings.{" "}
+          <Link href={libraryHref({ query, mine: mineOnly, sort: "oldest" })}>
+            Sort by oldest
+          </Link>{" "}
+          to see the rest.
+        </p>
+      ) : null}
+    </>
   );
 }
