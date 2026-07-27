@@ -3,6 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Field, PasswordField } from "@/components/ui/field";
+import { AlertTriangleIcon } from "@/components/ui/icons";
+
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -37,30 +41,44 @@ export function LoginForm() {
   }
 
   return (
-    <form className="login-form" onSubmit={submit}>
-      <label htmlFor="username">Username</label>
-      <input
+    <form className="auth__form" noValidate onSubmit={submit}>
+      <Field
         autoCapitalize="none"
         autoComplete="username"
         autoCorrect="off"
+        autoFocus
         id="username"
+        label="Username"
         name="username"
-        placeholder="Your username"
+        placeholder="your.username"
         required
       />
-      <label htmlFor="password">Password</label>
-      <input
+      <PasswordField
         autoComplete="current-password"
         id="password"
+        label="Password"
         name="password"
-        placeholder="Your password"
+        placeholder="••••••••••••"
         required
-        type="password"
       />
-      {error ? <p className="form-error">{error}</p> : null}
-      <button className="primary-button" disabled={isSubmitting} type="submit">
-        {isSubmitting ? "Signing in…" : "Continue"}
-      </button>
+
+      {error ? (
+        <p className="field__error" role="alert">
+          <AlertTriangleIcon size={15} />
+          {error}
+        </p>
+      ) : null}
+
+      <Button block disabled={isSubmitting} size="lg" type="submit" variant="primary">
+        {isSubmitting ? (
+          <>
+            <span className="spinner" />
+            Signing in…
+          </>
+        ) : (
+          "Continue"
+        )}
+      </Button>
     </form>
   );
 }

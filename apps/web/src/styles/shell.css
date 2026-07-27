@@ -1,0 +1,402 @@
+/**
+ * Application shell: brand, headers, footer and page headings.
+ *
+ * The two sticky headers are the only surfaces in the app that use
+ * `backdrop-filter`, and only where the browser supports it.
+ */
+
+/* --------------------------------------------------------------- brand */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 40px;
+  color: var(--text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+.logo-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(148deg, var(--accent-fill-hover), var(--accent-fill-active));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 2px 8px -3px var(--accent-glow);
+}
+
+.logo-mark > svg {
+  width: 76%;
+  height: 76%;
+}
+
+.logo__word {
+  margin-top: -1px;
+}
+
+/* -------------------------------------------------------------- header */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .app-bar {
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: saturate(1.3) blur(14px);
+    -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  }
+}
+
+.app-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-height: var(--header-h);
+}
+
+.app-bar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-left: var(--s-4);
+}
+
+.app-bar__spacer {
+  flex: 1 1 auto;
+}
+
+.app-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.nav-link {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 32px;
+  padding-inline: var(--s-3);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.nav-link[aria-current="page"] {
+  color: var(--text);
+  background: var(--surface-hover);
+  font-weight: var(--weight-semibold);
+}
+
+.workspace-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 32px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  color: var(--text);
+  background: var(--surface-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.workspace-trigger:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.workspace-trigger__name {
+  overflow: hidden;
+  max-width: 160px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-trigger__chevron {
+  color: var(--text-faint);
+}
+
+.menu__theme {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+@media (max-width: 640px) {
+  .menu__theme {
+    display: flex;
+  }
+}
+
+.menu__user {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3) var(--s-3);
+}
+
+.menu__user-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.menu__user-meta {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
+/* -------------------------------------------------------- page heading */
+
+.page-shell {
+  padding-block: var(--s-10) var(--s-20);
+}
+
+.page-shell--tight {
+  padding-block: var(--s-8) var(--s-16);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-6);
+  margin-bottom: var(--s-6);
+}
+
+.page-head__title {
+  font-size: var(--text-h1);
+  letter-spacing: var(--tracking-display);
+}
+
+.page-head__description {
+  max-width: 60ch;
+  margin-top: var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+/* ------------------------------------------------- status / error pages */
+
+.status-page {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  max-width: 60ch;
+  padding-block: var(--s-20) var(--s-24);
+}
+
+.status-page__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--s-5);
+  border-radius: var(--r-md);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.status-page__icon--danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.status-page .eyebrow {
+  margin-bottom: var(--s-3);
+}
+
+.status-page__title {
+  font-size: var(--text-h1);
+  letter-spacing: var(--tracking-display);
+}
+
+.status-page__body {
+  margin-top: var(--s-4);
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.status-page__body code {
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--surface-inset);
+  font-size: var(--text-sm);
+}
+
+.status-page__actions {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-7);
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------- settings nav */
+
+.settings-nav {
+  display: flex;
+  gap: var(--s-1);
+  margin-bottom: var(--s-6);
+  padding-bottom: var(--s-1);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 36px;
+  padding-inline: var(--s-3);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.settings-nav__item:hover {
+  color: var(--text);
+}
+
+.settings-nav__item[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+}
+
+/* -------------------------------------------------------------- footer */
+
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-block: var(--s-8);
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
+.site-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+
+.site-footer__links {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  list-style: none;
+}
+
+.site-footer__links a:hover {
+  color: var(--text);
+}
+
+.site-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 640px) {
+  /* Both navs duplicate links that are reachable from the logo, the user menu
+     and the footer, so they give up their space to the primary action. */
+  .site-nav,
+  .app-bar__nav {
+    display: none;
+  }
+
+  .workspace-trigger__name {
+    max-width: 84px;
+  }
+
+  /* The app bar has no room for the theme control at this width; the user menu
+     carries it instead (see .menu__theme). */
+  .app-bar__theme {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-bar__nav {
+    margin-left: var(--s-1);
+    gap: 0;
+  }
+
+  .nav-link {
+    padding-inline: var(--s-2);
+    font-size: var(--text-xs);
+  }
+
+  .app-bar__actions {
+    gap: var(--s-1);
+  }
+
+  .workspace-trigger__name {
+    max-width: 92px;
+  }
+
+  .page-head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+
+  .page-head__actions {
+    flex-wrap: wrap;
+  }
+
+  .settings-nav {
+    overflow-x: auto;
+  }
+
+  .site-footer__inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+}

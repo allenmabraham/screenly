@@ -1,0 +1,211 @@
+/**
+ * Design tokens.
+ *
+ * Light values live on :root, dark values in a single [data-theme="dark"] block.
+ * The inline script in the root layout resolves "system" to a concrete theme
+ * before first paint, so there is no flash and no duplicated dark block here.
+ */
+
+:root {
+  /* ------------------------------------------------------------- canvas */
+  --bg: #f5f6f8;
+  --bg-subtle: #eceef3;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-inset: #f1f2f6;
+  --surface-hover: rgba(15, 16, 23, 0.04);
+  --surface-active: rgba(15, 16, 23, 0.07);
+  --scrim: rgba(12, 13, 18, 0.55);
+  --stage: #0a0a0d;
+
+  /* --------------------------------------------------------------- text */
+  --text: #0f1017;
+  --text-muted: #545562;
+  --text-faint: #63646f;
+  --text-inverse: #f7f7fa;
+
+  /* -------------------------------------------------------------- lines */
+  --border: rgba(15, 16, 23, 0.1);
+  --border-strong: rgba(15, 16, 23, 0.18);
+  --border-inverse: rgba(255, 255, 255, 0.14);
+
+  /* ------------------------------------------------------------- accent */
+  --accent: #574fe0;
+  --accent-strong: #453cd4;
+  --accent-fill: #574fe0;
+  --accent-fill-hover: #4740d8;
+  --accent-fill-active: #3c34c8;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(87, 79, 224, 0.1);
+  --accent-soft-hover: rgba(87, 79, 224, 0.16);
+  --accent-border: rgba(87, 79, 224, 0.32);
+  --accent-glow: rgba(87, 79, 224, 0.28);
+
+  /* ------------------------------------------------------------- status */
+  /* Status colours are also used as badge text on their own 12% tint, so each
+     one is dark enough to clear 4.5:1 in that combination. */
+  --success: #0a6b48;
+  --success-soft: rgba(10, 107, 72, 0.12);
+  --warning: #8f5300;
+  --warning-soft: rgba(143, 83, 0, 0.12);
+  --danger: #c0362c;
+  --danger-strong: #a52b22;
+  --danger-soft: rgba(192, 54, 44, 0.1);
+  --info: #17629f;
+  --info-soft: rgba(23, 98, 159, 0.12);
+
+  /* ---------------------------------------------------------- elevation */
+  --shadow-xs: 0 1px 2px rgba(15, 16, 23, 0.05);
+  --shadow-sm:
+    0 1px 2px rgba(15, 16, 23, 0.06), 0 1px 3px rgba(15, 16, 23, 0.04);
+  --shadow-md:
+    0 2px 4px rgba(15, 16, 23, 0.05), 0 10px 24px -10px rgba(15, 16, 23, 0.18);
+  --shadow-lg:
+    0 2px 6px rgba(15, 16, 23, 0.06), 0 24px 56px -20px rgba(15, 16, 23, 0.26);
+  --shadow-pop:
+    0 1px 2px rgba(15, 16, 23, 0.08), 0 16px 40px -12px rgba(15, 16, 23, 0.28);
+  --ring: var(--accent);
+  --ring-width: 2px;
+  --ring-offset: 2px;
+
+  /* ------------------------------------------------------------ ambient */
+  --glow-1: rgba(87, 79, 224, 0.14);
+  --glow-2: rgba(56, 178, 248, 0.1);
+
+  /* --------------------------------------------------------- typography */
+  --text-display: clamp(2.5rem, 1.55rem + 3.6vw, 4.25rem);
+  --text-h1: clamp(1.875rem, 1.45rem + 1.6vw, 2.625rem);
+  --text-h2: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  --text-h3: 1.0625rem;
+  --text-lg: 1.125rem;
+  --text-body: 0.9375rem;
+  --text-sm: 0.8125rem;
+  --text-xs: 0.75rem;
+  --text-2xs: 0.6875rem;
+
+  --leading-tight: 1.06;
+  --leading-snug: 1.24;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.62;
+
+  --tracking-display: -0.035em;
+  --tracking-tight: -0.02em;
+  --tracking-normal: -0.01em;
+  --tracking-wide: 0.08em;
+
+  --weight-normal: 420;
+  --weight-medium: 520;
+  --weight-semibold: 600;
+  --weight-bold: 680;
+
+  /* -------------------------------------------------------------- space */
+  --s-0: 0;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 28px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-14: 56px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+  --s-32: 128px;
+
+  /* ------------------------------------------------------------- radius */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-2xl: 32px;
+  --r-full: 999px;
+
+  /* ------------------------------------------------------------- motion */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* ------------------------------------------------------------- layout */
+  --w-content: 1120px;
+  --w-wide: 1280px;
+  --w-narrow: 760px;
+  --w-prose: 640px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --header-h: 56px;
+
+  /* ------------------------------------------------------------ z-index */
+  --z-base: 1;
+  --z-sticky: 40;
+  --z-popover: 60;
+  --z-toast: 80;
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0e;
+  --bg-subtle: #101016;
+  --surface-1: #14151b;
+  --surface-2: #1c1d25;
+  --surface-inset: #0e0f14;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.09);
+  --scrim: rgba(0, 0, 0, 0.65);
+  --stage: #07070a;
+
+  --text: #f2f2f6;
+  --text-muted: #a0a1b0;
+  --text-faint: #82838f;
+  --text-inverse: #12131a;
+
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.17);
+  --border-inverse: rgba(15, 16, 23, 0.16);
+
+  --accent: #a79bff;
+  --accent-strong: #bdb4ff;
+  --accent-fill: #6a5cf0;
+  --accent-fill-hover: #7a6df5;
+  --accent-fill-active: #5f51e6;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(140, 127, 255, 0.16);
+  --accent-soft-hover: rgba(140, 127, 255, 0.24);
+  --accent-border: rgba(140, 127, 255, 0.34);
+  --accent-glow: rgba(106, 92, 240, 0.4);
+
+  --success: #3ddc97;
+  --success-soft: rgba(61, 220, 151, 0.16);
+  --warning: #f5b849;
+  --warning-soft: rgba(245, 184, 73, 0.16);
+  --danger: #ff8080;
+  --danger-strong: #ff9a9a;
+  --danger-soft: rgba(255, 128, 128, 0.14);
+  --info: #6cb8f5;
+  --info-soft: rgba(108, 184, 245, 0.16);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 32px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 4px 10px rgba(0, 0, 0, 0.5), 0 30px 64px -20px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 2px 4px rgba(0, 0, 0, 0.5), 0 20px 44px -14px rgba(0, 0, 0, 0.7);
+
+  --glow-1: rgba(106, 92, 240, 0.22);
+  --glow-2: rgba(56, 178, 248, 0.12);
+}
+
+/* Bridge the tokens into Tailwind so utilities and semantic classes agree. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-surface: var(--surface-1);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}

@@ -1,0 +1,144 @@
+/**
+ * Workspace settings: members and recorder tokens.
+ */
+
+.settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  max-width: 820px;
+}
+
+.panel.is-pending {
+  opacity: 0.6;
+}
+
+.panel__count {
+  margin-left: var(--s-1);
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-form {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-inset);
+}
+
+.settings-form .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--surface-1);
+}
+
+.settings-form--invite .select {
+  width: 140px;
+  flex: 0 0 auto;
+  background-color: var(--surface-1);
+}
+
+.settings-list {
+  list-style: none;
+}
+
+.settings-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  background: var(--surface-inset);
+}
+
+.settings-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: var(--s-10) var(--s-5);
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+}
+
+.empty-state--flush {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.settings-error {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-4) var(--s-5);
+  color: var(--danger);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+}
+
+/* ----------------------------------------------------- one-time secrets */
+
+.secret-panel {
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.secret-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.secret-panel strong {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.secret-panel p {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+
+.secret-panel .code-well {
+  margin-top: var(--s-3);
+  border-color: var(--accent-border);
+  background: var(--surface-1);
+}
+
+@media (max-width: 720px) {
+  .settings-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-form--invite .select {
+    width: 100%;
+  }
+
+  .list-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--s-3);
+  }
+
+  .list-row__actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .secret-panel__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,10 +1,15 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { LoginForm } from "@/components/login-form";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { LoginForm } from "@/components/auth/login-form";
 import { getCookieSessionAuth } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+};
 
 export default async function LoginPage() {
   if (await getCookieSessionAuth()) {
@@ -12,26 +17,13 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="login-shell">
-      <Link className="brand" href="/">
-        <span className="brand-mark">
-          <span />
-        </span>
-        Screenly
-      </Link>
-      <section className="login-card">
-        <p className="eyebrow">Team access</p>
-        <h1>Sign in to Screenly</h1>
-        <p>
-          Open your library to watch, rename, and share recordings — and see
-          who watched them.
-        </p>
-        <LoginForm />
-        <p className="login-footnote">
-          No account yet? Ask a workspace admin to send you an invitation from
-          the Members page.
-        </p>
-      </section>
-    </main>
+    <AuthShell
+      description="Open your library to watch, rename and share recordings — and see who watched them."
+      eyebrow="Team access"
+      footer="No account yet? Ask a workspace admin to send you an invitation from the Members page."
+      title="Sign in to Screenly"
+    >
+      <LoginForm />
+    </AuthShell>
   );
 }

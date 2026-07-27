@@ -38,7 +38,7 @@ export default async function EmbeddedVideoPage({
   }
 
   return (
-    <main className="embed-player">
+    <main className="embed-stage">
       <video
         aria-label={video.title}
         controls
