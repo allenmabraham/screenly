@@ -1,27 +1,35 @@
-import { getMacRelease, getMacReleaseObjectKey } from "@/lib/release";
+import {
+  getRelease,
+  getReleaseFileName,
+  getReleaseObjectKey,
+  isReleasePlatform,
+} from "@/lib/release";
+import {
+  releaseUnavailableResponse,
+  unknownPlatformResponse,
+} from "@/lib/release-responses";
 import { getDownloadUrl } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const release = await getMacRelease();
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ platform: string }> },
+) {
+  const { platform } = await params;
+  if (!isReleasePlatform(platform)) {
+    return unknownPlatformResponse();
+  }
 
+  const release = await getRelease(platform);
   if (!release) {
-    return Response.json(
-      {
-        error: {
-          code: "release_unavailable",
-          message: "No macOS release is currently published.",
-        },
-      },
-      { status: 404 },
-    );
+    return releaseUnavailableResponse(platform);
   }
 
   const signedURL = await getDownloadUrl(
-    getMacReleaseObjectKey(),
-    `Screenly-${release.version}.dmg`,
+    getReleaseObjectKey(platform),
+    getReleaseFileName(platform, release.version),
   );
 
   return Response.redirect(signedURL, 307);

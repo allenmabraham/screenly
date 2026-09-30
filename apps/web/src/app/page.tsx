@@ -22,7 +22,7 @@ const STEPS = [
   {
     number: "01",
     title: "Record",
-    body: "Capture a screen, a window, or a dragged-out region from the menu bar.",
+    body: "Capture a screen, a window, or a dragged-out region from the menu bar or system tray.",
   },
   {
     number: "02",
@@ -60,12 +60,12 @@ const FEATURES = [
   {
     Icon: KeyIcon,
     title: "Per-device tokens",
-    body: "Each Mac gets its own recorder token that can be revoked without touching past recordings.",
+    body: "Each computer gets its own recorder token that can be revoked without touching past recordings.",
   },
   {
     Icon: FilmIcon,
-    title: "Native macOS capture",
-    body: "Screen, microphone, system audio and webcam via ScreenCaptureKit, mixed for browser playback.",
+    title: "macOS, Windows and Linux",
+    body: "Screen, microphone, system audio and webcam from native desktop recorders, mixed for browser playback.",
   },
 ];
 
@@ -104,11 +104,11 @@ export default async function Home() {
               </ButtonLink>
               <ButtonLink href="/download" size="lg" variant="secondary">
                 <DownloadIcon size={17} />
-                Download for Mac
+                Download the app
               </ButtonLink>
             </div>
             <p className="hero__note">
-              macOS 15 or newer ·{" "}
+              macOS, Windows and Linux ·{" "}
               <Link href={authentication ? "/library" : "/login"}>
                 {authentication ? "Open your library" : "Sign in"}
               </Link>
@@ -157,14 +157,14 @@ export default async function Home() {
             <div>
               <h2 className="cta__title">Start recording in a minute</h2>
               <p className="cta__body">
-                Install the Mac app, sign in once, and your recordings land in
-                the team library automatically.
+                Install the desktop app, sign in once, and your recordings land
+                in the team library automatically.
               </p>
             </div>
             <div className="cta__actions">
               <ButtonLink href="/download" size="lg" variant="primary">
                 <DownloadIcon size={17} />
-                Download for Mac
+                Download the app
               </ButtonLink>
               <ButtonLink
                 href={authentication ? "/library" : "/login"}

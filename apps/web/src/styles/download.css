@@ -1,5 +1,5 @@
 /**
- * Mac download page.
+ * Desktop recorder download page (macOS, Windows, Linux).
  */
 
 .download {
@@ -89,6 +89,63 @@
   text-align: left;
 }
 
+.download__other {
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------------------------------------------------------- platforms */
+
+.download__platforms {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-16);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  scroll-margin-top: var(--s-20);
+}
+
+.download__platform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: var(--s-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-xs);
+}
+
+.download__platform-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.download__platform-header h3 {
+  font-size: var(--text-h3);
+}
+
+.download__platform-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.download__platform-empty {
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+}
+
+.download__checksum--compact {
+  margin-top: 0;
+  padding: var(--s-1) var(--s-1) var(--s-1) var(--s-3);
+  border-radius: var(--r-md);
+}
+
 /* ----------------------------------------------------------- features */
 
 .download__features {
@@ -131,13 +188,28 @@
 /* ------------------------------------------------------------ install */
 
 .download__install {
-  max-width: 660px;
   margin: var(--s-20) auto 0;
 }
 
 .download__install-title {
   font-size: var(--text-h2);
   letter-spacing: var(--tracking-display);
+}
+
+.download__install-grid {
+  display: grid;
+  gap: var(--s-8);
+  margin-top: var(--s-6);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.download__install-platform {
+  font-size: var(--text-h3);
+}
+
+.download__install-grid .download__steps {
+  margin-top: var(--s-4);
+  padding: 0;
 }
 
 .download__steps {
@@ -190,6 +262,7 @@
     flex-wrap: wrap;
   }
 
+  .download__platforms,
   .download__features,
   .download__install {
     margin-top: var(--s-12);

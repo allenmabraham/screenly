@@ -74,7 +74,7 @@ export function RecorderTokenManager({
         <div>
           <h2 className="panel__title">Recorder tokens</h2>
           <p className="panel__description">
-            One token per Mac. Revoking a token blocks new uploads from that
+            One token per computer. Revoking a token blocks new uploads from that
             device immediately and leaves existing recordings untouched.
           </p>
         </div>
@@ -129,7 +129,7 @@ export function RecorderTokenManager({
       {initialTokens.length === 0 ? (
         <EmptyState
           className="empty-state--flush"
-          description="Create one token per Mac so uploads can be attributed and revoked per device."
+          description="Create one token per computer so uploads can be attributed and revoked per device."
           icon={<KeyIcon size={20} />}
           title="No recorder tokens yet"
         />
