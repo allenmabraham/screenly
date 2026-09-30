@@ -1,0 +1,28 @@
+{
+  "name": "@screenly/desktop",
+  "productName": "Screenly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Screenly screen recorder for Windows and Linux",
+  "author": "Screenly",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/build.mjs && electron .",
+    "typecheck": "tsc --noEmit",
+    "package:linux": "node scripts/build.mjs && electron-builder --linux --publish never",
+    "package:windows": "node scripts/build.mjs && electron-builder --win --publish never"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3"
+  }
+}
