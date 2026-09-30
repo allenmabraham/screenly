@@ -685,6 +685,7 @@ kbd {
   box-shadow: 0 0 0 4px rgba(245, 184, 73, 0.2);
 }
 .hud__time {
+  min-width: 5ch;
   font: 600 16px var(--font-mono);
 }
 .hud__spacer {
@@ -693,8 +694,8 @@ kbd {
 .hud__button {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border: 0;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);

@@ -9,7 +9,7 @@ import { type Rect, normalizeFrame } from "../core/capture-geometry";
 import type { RegionContext } from "../shared/ipc";
 import { createPageWindow } from "./windows";
 
-const HUD_SIZE = { width: 320, height: 64 };
+const HUD_SIZE = { width: 272, height: 64 };
 const WEBCAM_SIZES = [140, 180, 220, 280, 340, 420];
 const DEFAULT_WEBCAM_SIZE_INDEX = 2;
 
