@@ -5,6 +5,8 @@
   "private": true,
   "description": "Screenly screen recorder for Windows and Linux",
   "author": "Screenly",
+  "homepage": "https://github.com/allenmabraham/screenly",
+  "desktopName": "screenly.desktop",
   "main": "dist/main.js",
   "scripts": {
     "build": "node scripts/build.mjs",

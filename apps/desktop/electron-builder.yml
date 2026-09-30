@@ -39,20 +39,14 @@ linux:
     - target: deb
       arch:
         - x64
-  icon: build/icon.png
+  icon: build/icons
   executableName: screenly
   category: AudioVideo
   maintainer: Screenly
   vendor: Screenly
   synopsis: Screen recorder with instant share links
-  description: >-
-    Record your screen, a window, or an area with microphone, system audio,
-    and a webcam bubble, then paste the share link before the upload finishes.
-  desktop:
-    entry:
-      Name: Screenly
-      Comment: Record your screen and share a link instantly
-      StartupWMClass: Screenly
+  description: Record your screen, a window, or an area and share a link instantly.
+  syncDesktopName: true
 
 appImage:
   artifactName: Screenly-${version}-x86_64.${ext}

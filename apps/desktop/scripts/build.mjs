@@ -120,6 +120,9 @@ await Promise.all([
   renderIcon("tray-recording.svg", path.join(assets, "tray-recording@2x.png"), 32),
   renderIcon("tray-recording.svg", path.join(assets, "tray-recording-linux.png"), 48),
   renderIcon("icon.svg", path.join(root, "build", "icon.png"), 1024),
+  ...[16, 32, 48, 64, 128, 256, 512].map((size) =>
+    renderIcon("icon.svg", path.join(root, "build", "icons", `${size}x${size}.png`), size),
+  ),
 ]);
 
 console.log(`Built Screenly desktop (${production ? "production" : "development"}) into ${dist}`);
