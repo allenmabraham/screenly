@@ -116,6 +116,6 @@ function titleFromFileName(fileName: string) {
 }
 
 function safeExtension(fileName: string) {
-  const match = fileName.toLowerCase().match(/\.(mp4|mov|m4v)$/);
+  const match = fileName.toLowerCase().match(/\.(mp4|mov|m4v|webm)$/);
   return match?.[0] ?? ".mp4";
 }

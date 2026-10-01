@@ -1,0 +1,243 @@
+# Windows and Linux recorder builds.
+#
+# Pull requests build unsigned installers as artifacts. Pushes to main that
+# change the recorder, and manual dispatches, also publish them next to the
+# macOS DMG so /download and /api/releases/<platform>/latest update without a
+# web deploy. `desktop-internal-v*` tags build without publishing.
+#
+# Configuration (DESKTOP_* values fall back to the macOS release settings, so
+# an existing macOS release bucket works without extra setup):
+#   Repository secrets:
+#     DESKTOP_RELEASE_STORAGE_ACCESS_KEY_ID / _SECRET_ACCESS_KEY
+#     WINDOWS_CERTIFICATE_P12_BASE64, WINDOWS_CERTIFICATE_PASSWORD  optional,
+#                                    sign the Windows installer
+#   Repository variables:
+#     DESKTOP_RELEASE_STORAGE_URI, _REGION, _ENDPOINT
+
+name: Release desktop recorder
+
+on:
+  pull_request:
+    paths:
+      - "apps/desktop/**"
+      - ".github/workflows/desktop-release.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version, for example 1.2.0
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/desktop/**"
+      - ".github/workflows/desktop-release.yml"
+    tags:
+      - "desktop-internal-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  settings:
+    name: Resolve release settings
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      publish: ${{ steps.release.outputs.publish }}
+    env:
+      STORAGE_ACCESS_KEY_ID: ${{ secrets.DESKTOP_RELEASE_STORAGE_ACCESS_KEY_ID || secrets.MAC_RELEASE_STORAGE_ACCESS_KEY_ID }}
+      STORAGE_SECRET_ACCESS_KEY: ${{ secrets.DESKTOP_RELEASE_STORAGE_SECRET_ACCESS_KEY || secrets.MAC_RELEASE_STORAGE_SECRET_ACCESS_KEY }}
+      STORAGE_REGION: ${{ vars.DESKTOP_RELEASE_STORAGE_REGION || vars.MAC_RELEASE_STORAGE_REGION }}
+      STORAGE_URI: ${{ vars.DESKTOP_RELEASE_STORAGE_URI || vars.MAC_RELEASE_STORAGE_URI }}
+      DISPATCH_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version and publishing
+        id: release
+        run: |
+          storage_configured=true
+          for variable in STORAGE_ACCESS_KEY_ID STORAGE_SECRET_ACCESS_KEY STORAGE_REGION STORAGE_URI; do
+            if [[ -z "${!variable:-}" ]]; then
+              storage_configured=false
+            fi
+          done
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#desktop-internal-v}"
+            publish=false
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$DISPATCH_VERSION"
+            publish=true
+            if [[ "$storage_configured" != "true" ]]; then
+              echo "::error::Release storage is not configured."
+              exit 1
+            fi
+          else
+            version="$(node -p "require('./apps/desktop/package.json').version")"
+            if [[ "$GITHUB_EVENT_NAME" == "push" && "$storage_configured" == "true" ]]; then
+              publish=true
+            else
+              publish=false
+            fi
+          fi
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid release version: $version"
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF_TYPE" == "branch" && "$publish" != "true" ]]; then
+            echo "::warning::Release storage is not configured; building installers without publishing."
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+
+  package:
+    name: Package (${{ matrix.name }})
+    needs: settings
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            builder: --win
+          - name: Linux
+            os: ubuntu-22.04
+            builder: --linux
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.settings.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm through Corepack
+        run: corepack enable
+
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter @screenly/desktop...
+
+      - name: Typecheck
+        run: pnpm --filter @screenly/desktop typecheck
+
+      - name: Configure Windows code signing
+        if: runner.os == 'Windows'
+        env:
+          CERTIFICATE_P12_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [[ -n "${CERTIFICATE_P12_BASE64:-}" && -n "${CERTIFICATE_PASSWORD:-}" ]]; then
+            {
+              echo "CSC_LINK=$CERTIFICATE_P12_BASE64"
+              echo "CSC_KEY_PASSWORD=$CERTIFICATE_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "::warning::No Windows signing certificate is configured; the installer is unsigned."
+            echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build installers
+        working-directory: apps/desktop
+        run: |
+          node scripts/build.mjs
+          pnpm exec electron-builder ${{ matrix.builder }} --publish never \
+            "-c.extraMetadata.version=$VERSION"
+
+      - name: Write checksums
+        working-directory: apps/desktop/release
+        run: |
+          shopt -s nullglob
+          for file in *.exe *.AppImage *.deb; do
+            sha256sum "$file" | awk '{ print $1 }' > "$file.sha256"
+            echo "$file $(cat "$file.sha256")"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenly-desktop-${{ runner.os }}-${{ needs.settings.outputs.version }}
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.sha256
+          if-no-files-found: error
+
+  publish:
+    name: Publish downloads
+    needs:
+      - settings
+      - package
+    if: needs.settings.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.settings.outputs.version }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DESKTOP_RELEASE_STORAGE_ACCESS_KEY_ID || secrets.MAC_RELEASE_STORAGE_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DESKTOP_RELEASE_STORAGE_SECRET_ACCESS_KEY || secrets.MAC_RELEASE_STORAGE_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ vars.DESKTOP_RELEASE_STORAGE_REGION || vars.MAC_RELEASE_STORAGE_REGION }}
+      STORAGE_URI: ${{ vars.DESKTOP_RELEASE_STORAGE_URI || vars.MAC_RELEASE_STORAGE_URI }}
+      STORAGE_ENDPOINT_URL: ${{ vars.DESKTOP_RELEASE_STORAGE_ENDPOINT || vars.MAC_RELEASE_STORAGE_ENDPOINT }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: screenly-desktop-*-${{ needs.settings.outputs.version }}
+          merge-multiple: true
+          path: release
+
+      - name: Publish versioned and latest downloads
+        working-directory: release
+        run: |
+          endpoint_args=()
+          if [[ -n "${STORAGE_ENDPOINT_URL:-}" ]]; then
+            endpoint_args+=(--endpoint-url "$STORAGE_ENDPOINT_URL")
+          fi
+
+          publish() {
+            local file="$1" latest="$2" content_type="$3"
+            local sha256
+            sha256="$(cat "$file.sha256")"
+            for name in "$file" "$latest"; do
+              aws "${endpoint_args[@]}" s3 cp "$file" "$STORAGE_URI/$name" \
+                --content-type "$content_type" \
+                --metadata "version=$VERSION,sha256=$sha256"
+            done
+            aws "${endpoint_args[@]}" s3 cp "$file.sha256" "$STORAGE_URI/$latest.sha256" \
+              --content-type text/plain
+          }
+
+          publish "Screenly-Setup-$VERSION.exe" "Screenly-Setup-latest.exe" \
+            application/vnd.microsoft.portable-executable
+          publish "Screenly-$VERSION-x86_64.AppImage" "Screenly-latest-x86_64.AppImage" \
+            application/octet-stream
+          publish "screenly_${VERSION}_amd64.deb" "screenly-latest-amd64.deb" \
+            application/vnd.debian.binary-package
+
+          {
+            echo "### Desktop recorder $VERSION published"
+            echo
+            echo "- Windows: Screenly-Setup-latest.exe"
+            echo "- Linux: Screenly-latest-x86_64.AppImage, screenly-latest-amd64.deb"
+          } >> "$GITHUB_STEP_SUMMARY"

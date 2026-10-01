@@ -24,3 +24,6 @@ coverage/
 
 # Deployment state
 .vercel/
+
+# Desktop packaging output
+apps/desktop/release/

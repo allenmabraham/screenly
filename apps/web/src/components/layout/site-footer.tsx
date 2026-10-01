@@ -12,7 +12,7 @@ export function SiteFooter() {
         </div>
         <ul className="site-footer__links">
           <li>
-            <Link href="/download">Download for Mac</Link>
+            <Link href="/download">Download</Link>
           </li>
           <li>
             <Link href="/v/demo1234">Watch the demo</Link>

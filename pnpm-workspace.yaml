@@ -3,6 +3,8 @@ packages:
   - "packages/*"
 
 allowBuilds:
+  electron: false
+  electron-winstaller: false
   esbuild: true
   sharp: true
   unrs-resolver: true

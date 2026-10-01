@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseFfmpegProgress } from "./media.js";
+import { lastPacketEndSeconds, parseFfmpegProgress } from "./media.js";
+
+test("durations fall back to the last packet when the container has none", () => {
+  assert.equal(
+    lastPacketEndSeconds("0.000000,0.033000\n2.967000,0.033000\n3.001000,0.020000\n1.500000,N/A\n"),
+    3.021,
+  );
+  assert.equal(lastPacketEndSeconds("4.500000,N/A\n"), 4.5);
+  assert.ok(Number.isNaN(lastPacketEndSeconds("")));
+  assert.ok(Number.isNaN(lastPacketEndSeconds("N/A,N/A\n")));
+});
 
 test("ffmpeg progress uses output media time and processing speed", () => {
   const progress = parseFfmpegProgress(

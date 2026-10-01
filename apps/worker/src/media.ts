@@ -46,7 +46,21 @@ export async function probeMedia(inputPath: string): Promise<MediaProbe> {
     throw new Error("The uploaded file does not contain a video stream.");
   }
 
-  const durationSeconds = Number(result.format?.duration);
+  let durationSeconds = Number(result.format?.duration);
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    // Browser MediaRecorder WebM files have no container duration.
+    durationSeconds = lastPacketEndSeconds(
+      await run("ffprobe", [
+        "-v",
+        "error",
+        "-show_entries",
+        "packet=pts_time,duration_time",
+        "-of",
+        "csv=p=0",
+        inputPath,
+      ]),
+    );
+  }
   if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
     throw new Error("The uploaded video has an invalid duration.");
   }
@@ -299,6 +313,22 @@ async function runFfmpeg(
       );
     });
   });
+}
+
+/** Parses `ffprobe -show_entries packet=pts_time,duration_time -of csv=p=0`. */
+export function lastPacketEndSeconds(csv: string) {
+  let end = Number.NaN;
+  for (const line of csv.split("\n")) {
+    const [ptsValue, durationValue] = line.trim().split(",");
+    const pts = Number(ptsValue);
+    if (!ptsValue || !Number.isFinite(pts)) {
+      continue;
+    }
+    const duration = Number(durationValue);
+    const packetEnd = pts + (Number.isFinite(duration) ? duration : 0);
+    end = Number.isNaN(end) ? packetEnd : Math.max(end, packetEnd);
+  }
+  return end;
 }
 
 export function parseFfmpegProgress(

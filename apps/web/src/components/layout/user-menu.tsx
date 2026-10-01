@@ -60,7 +60,7 @@ export function UserMenu({
       ) : null}
       <a className="menu__item" href="/download" role="menuitem">
         <DownloadIcon size={16} />
-        Download the Mac app
+        Download the recorder
       </a>
       <div className="menu__separator" />
       <button

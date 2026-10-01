@@ -1,12 +1,12 @@
 # Screenly
 
 Screenly is an internal, low-friction screen recorder and sharing service. The
-native macOS recorder creates a share link before its upload starts so the link
-can be pasted into Slack immediately while the viewer displays a live
-processing state.
+native macOS recorder and the Windows and Linux desktop recorder create a share
+link before their upload starts so the link can be pasted into Slack
+immediately while the viewer displays a live processing state.
 
 The repository contains the complete application foundation: the web product,
-native recorder, resumable upload path, and ffmpeg processing job. Open
+desktop recorders, resumable upload path, and ffmpeg processing job. Open
 [`/v/demo1234`](http://localhost:3000/v/demo1234) to view the built-in demo
 without configuring external services.
 
@@ -16,6 +16,7 @@ without configuring external services.
 apps/
   web/        Next.js App Router UI and HTTP API
   mac/        Native Swift/SwiftUI menu bar recorder
+  desktop/    Electron tray recorder for Windows and Linux
   worker/     TypeScript ffmpeg worker-pool / one-shot processor
 ```
 
@@ -28,16 +29,19 @@ Production is designed around:
   uploads from PostgreSQL without a per-video cold start
 - **macOS distribution:** signed and notarized universal DMG from the web
   application’s download page
+- **Windows and Linux distribution:** NSIS installer, AppImage, and `.deb`
+  published to the same release bucket and offered on the same page
 
 No recording bytes pass through the Next.js service. The API creates a video
 record and share slug, then issues short-lived presigned multipart URLs so the
-Mac app uploads directly to Cloud Storage. The storage integration uses Cloud
+recorders upload directly to Cloud Storage. The storage integration uses Cloud
 Storage's S3-compatible XML API and HMAC credentials, preserving the recorder's
 resumable multipart protocol.
 
-The recorder writes microphone and system audio as separate source tracks.
-The processing job mixes them into one AAC track for consistent browser
-playback.
+The macOS recorder writes microphone and system audio as separate source
+tracks; the Windows and Linux recorder mixes them into one Opus track while
+recording. The processing job produces one AAC track for consistent browser
+playback either way.
 
 ## Local development
 
@@ -83,7 +87,8 @@ Recorder endpoints require a per-recorder token created from
 Authorization: Bearer <RECORDER_TOKEN>
 ```
 
-The resumable flow is:
+The Mac, Windows, and Linux recorders all use this flow. The resumable flow
+is:
 
 1. `POST /api/uploads` with the file name, MIME type, and byte size.
 2. Copy the returned `shareUrl` to the clipboard immediately.
@@ -636,10 +641,90 @@ of failing the deployment. Configure these secrets to enable publishing:
 Configure repository variables `MAC_RELEASE_STORAGE_URI`,
 `MAC_RELEASE_STORAGE_REGION`, and optional `MAC_RELEASE_STORAGE_ENDPOINT`.
 For Cloud Storage use an `s3://BUCKET/releases` URI, region `auto`, and endpoint
-`https://storage.googleapis.com`. Set `MAC_APP_DOWNLOAD_URL` on the web service;
-`MAC_APP_VERSION` and `MAC_APP_SHA256` remain fallbacks for release objects
-published before metadata support. `/download` and
+`https://storage.googleapis.com`. Published releases download through
+`/api/releases/macos/download` without web configuration; `MAC_APP_DOWNLOAD_URL`
+overrides that link, and `MAC_APP_VERSION` and `MAC_APP_SHA256` remain fallbacks
+for release objects published before metadata support. `/download` and
 `/api/releases/macos/latest` expose the latest signed build.
+
+## Windows and Linux build and distribution
+
+`apps/desktop` is an Electron recorder with the same behavior as the macOS app:
+a tray icon and control center, a global shortcut (**Alt+Shift+R** by
+default), full-screen, window, and area capture, microphone and system audio,
+a draggable webcam bubble, pause and resume, and the same device sign-in,
+workspace switching, and resumable multipart upload. The share link is copied
+to the clipboard and the viewer opens as soon as the upload is created.
+
+Run it against a local server:
+
+```bash
+pnpm install
+pnpm desktop
+```
+
+Sign in with a Screenly account, or use **Settings → Advanced → Manual server
+configuration** with `http://localhost:3000` and a recorder token. Build
+installers for the current operating system with:
+
+```bash
+pnpm --filter @screenly/desktop package:windows   # on Windows: NSIS .exe
+pnpm --filter @screenly/desktop package:linux     # on Linux: AppImage and .deb
+```
+
+Upload, sign-in, and settings logic lives in Electron-free modules under
+`apps/desktop/src/core` and is covered by `pnpm test`. The main process
+(`src/main`) owns the tray, windows, shortcut, secure storage, and the recording
+state machine. Capture runs in a hidden renderer (`src/renderer/pages/capture.ts`)
+that feeds Chromium's `MediaRecorder` and streams chunks to disk, preferring
+H.264 MP4 and falling back to WebM, which the processor also accepts.
+
+Platform behavior worth knowing:
+
+- **Windows.** System audio is captured through WASAPI loopback. The recording
+  controls and webcam bubble are excluded from captures, and the webcam is
+  composited into the video instead. Microphone and camera access follow
+  **Settings → Privacy & security**; Screenly links there when access is off.
+  Sign-in tokens are encrypted with DPAPI.
+- **Linux (X11).** System audio is recorded from the default output's monitor
+  through PulseAudio or PipeWire (`pipewire-pulse`). X11 cannot hide windows
+  from capture, so full-screen and area recordings include the on-screen
+  webcam bubble and controls; window recordings composite the webcam instead.
+  Tokens are encrypted with GNOME Keyring or KWallet when available. Without a
+  keyring they are stored in an owner-only file and Settings shows a warning.
+- **Linux (Wayland).** Screen and window selection goes through the desktop's
+  screen-sharing portal (PipeWire) and the global shortcut through the
+  GlobalShortcuts portal where the compositor supports it. Area capture is not
+  available on Wayland.
+
+The `Release desktop recorder` workflow (`.github/workflows/desktop-release.yml`)
+builds the Windows installer on `windows-latest` and the AppImage and `.deb` on
+`ubuntu-22.04` for every pull request that changes the recorder, and uploads
+them as workflow artifacts. On a `main` push it publishes the version in
+`apps/desktop/package.json`; a manual dispatch publishes a chosen version, and
+`desktop-internal-v*` tags build without publishing. Published objects sit
+next to the DMG with `version` and `sha256` metadata:
+
+```text
+releases/Screenly-Setup-<version>.exe      releases/Screenly-Setup-latest.exe
+releases/Screenly-<version>-x86_64.AppImage releases/Screenly-latest-x86_64.AppImage
+releases/screenly_<version>_amd64.deb      releases/screenly-latest-amd64.deb
+```
+
+The workflow reuses the macOS release storage secrets and variables unless
+`DESKTOP_RELEASE_STORAGE_ACCESS_KEY_ID`, `DESKTOP_RELEASE_STORAGE_SECRET_ACCESS_KEY`,
+`DESKTOP_RELEASE_STORAGE_URI`, `DESKTOP_RELEASE_STORAGE_REGION`, or
+`DESKTOP_RELEASE_STORAGE_ENDPOINT` override them. Set
+`WINDOWS_CERTIFICATE_P12_BASE64` and `WINDOWS_CERTIFICATE_PASSWORD` to sign the
+installer; unsigned installers still publish, and SmartScreen asks users to
+confirm them with **More info → Run anyway**.
+
+`/download` features the visitor's operating system and lists every published
+build with its checksum. `/api/releases/<platform>/latest` and
+`/api/releases/<platform>/download` serve `macos`, `windows`, `linux-appimage`,
+and `linux-deb`. Windows and Linux releases need no web configuration once
+published; `WINDOWS_APP_*`, `LINUX_APPIMAGE_*`, and `LINUX_DEB_*` accept the same
+`DOWNLOAD_URL`, `VERSION`, and `SHA256` overrides as `MAC_APP_*`.
 
 ## Current verification commands
 
@@ -653,11 +738,14 @@ docker build -f apps/web/Dockerfile .
 docker build -f apps/worker/Dockerfile .
 # On macOS:
 xcodebuild -project apps/mac/Screenly.xcodeproj -scheme Screenly build
+# On Windows or Linux:
+pnpm --filter @screenly/desktop package:windows   # or package:linux
 ```
 
 `pnpm test` covers the pure helpers (`format`, `format-processing`, `processing`,
-`release`, `slack`, `gcp-auth`) and the worker's config, loop, progress and media
-modules. UI behaviour is verified against a running instance: point a browser at
+`release`, `platform`, `slack`, `gcp-auth`), the worker's config, loop, progress
+and media modules, and the desktop recorder's upload, sign-in, settings, and
+capture-geometry modules. UI behaviour is verified against a running instance: point a browser at
 a seeded local database and check the viewer, library, settings and auth flows,
 including playback, keyboard shortcuts, hover previews, live processing updates,
 and both themes at desktop and mobile widths.

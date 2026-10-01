@@ -128,7 +128,7 @@ async function VideoGrid({
             </ButtonLink>
           ) : (
             <ButtonLink href="/download" variant="primary">
-              Get the Mac recorder
+              Get the desktop recorder
             </ButtonLink>
           )
         }
@@ -136,8 +136,8 @@ async function VideoGrid({
           query
             ? "Try a different title, or clear the search to see everything."
             : mineOnly
-              ? "Recordings you upload from the Mac app while signed in appear here."
-              : "Record something with the Mac app and it will show up here the moment the upload starts."
+              ? "Recordings you upload from the desktop app while signed in appear here."
+              : "Record something with the desktop app and it will show up here the moment the upload starts."
         }
         icon={query ? <SearchIcon size={20} /> : <FilmIcon size={20} />}
         title={
