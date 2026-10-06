@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { apiErrorResponse } from "@/lib/api";
+import { credentialAttempt, rateLimitedResponse } from "@/lib/rate-limit";
 import {
   createSessionToken,
   getRequestAuth,
@@ -37,11 +38,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { username, password } = loginSchema.parse(await request.json());
+    const attempt = credentialAttempt(request, username);
+    const decision = attempt.check();
+    if (!decision.allowed) {
+      return rateLimitedResponse(decision);
+    }
+
     const user = await authenticateCredentials(username, password);
     const memberships = user ? await listUserWorkspaces(user.id) : [];
     const activeWorkspace = memberships[0];
 
     if (!user || !activeWorkspace) {
+      attempt.failure();
       return Response.json(
         {
           error: {
@@ -53,6 +61,7 @@ export async function POST(request: Request) {
       );
     }
 
+    attempt.success();
     const response = NextResponse.json({
       authenticated: true,
       user,

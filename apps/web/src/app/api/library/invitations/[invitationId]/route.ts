@@ -6,6 +6,7 @@ import {
 } from "@/features/auth/invitations";
 import { canManageWorkspace } from "@/features/auth/users";
 import { apiErrorResponse } from "@/lib/api";
+import { getPublicAppUrl } from "@/lib/env";
 import {
   getRequestAuth,
   workspaceForbiddenResponse,
@@ -29,9 +30,7 @@ export async function POST(
   try {
     const { invitationId: rawInvitationId } = await params;
     const invitationId = z.uuid().parse(rawInvitationId);
-    const appUrl = (
-      process.env.APP_URL ?? new URL(request.url).origin
-    ).replace(/\/$/, "");
+    const appUrl = getPublicAppUrl(request);
     const invitation = await resendWorkspaceInvitation({
       invitationId,
       workspaceId: authentication.workspace.id,

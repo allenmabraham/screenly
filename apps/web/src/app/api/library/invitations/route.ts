@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createWorkspaceInvitation } from "@/features/auth/invitations";
 import { canManageWorkspace } from "@/features/auth/users";
 import { apiErrorResponse } from "@/lib/api";
+import { getPublicAppUrl } from "@/lib/env";
 import {
   getRequestAuth,
   workspaceForbiddenResponse,
@@ -34,9 +35,7 @@ export async function POST(request: Request) {
       return workspaceForbiddenResponse();
     }
 
-    const appUrl = (
-      process.env.APP_URL ?? new URL(request.url).origin
-    ).replace(/\/$/, "");
+    const appUrl = getPublicAppUrl(request);
     const invitation = await createWorkspaceInvitation({
       ...input,
       workspaceId: authentication.workspace.id,

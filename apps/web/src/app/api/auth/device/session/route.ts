@@ -17,6 +17,7 @@ import {
 import {
   apiErrorResponse,
 } from "@/lib/api";
+import { credentialAttempt, rateLimitedResponse } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -29,14 +30,22 @@ const loginSchema = z.object({
 export async function POST(request: Request) {
   try {
     const input = loginSchema.parse(await request.json());
+    const attempt = credentialAttempt(request, input.username);
+    const decision = attempt.check();
+    if (!decision.allowed) {
+      return rateLimitedResponse(decision);
+    }
+
     const user = await authenticateCredentials(input.username, input.password);
     const workspaces = user ? await listUserWorkspaces(user.id) : [];
     const activeWorkspace = workspaces[0];
 
     if (!user || !activeWorkspace) {
+      attempt.failure();
       return invalidCredentialsResponse();
     }
 
+    attempt.success();
     const [session, recorderToken] = await Promise.all([
       createDeviceSession(user.id, input.deviceName),
       createRecorderToken(activeWorkspace.id, input.deviceName, user.id),
