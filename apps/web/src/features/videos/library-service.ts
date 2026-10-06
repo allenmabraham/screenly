@@ -2,7 +2,9 @@ import { and, asc, desc, eq, ilike } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import { videos, videoViews } from "@/db/schema";
+import { escapeLikePattern } from "@/lib/search";
 import {
+  abortMultipartUpload,
   deleteObjectPrefix,
   deleteObjects,
   getPlaybackUrl,
@@ -51,7 +53,7 @@ export async function listLibraryVideos(
         eq(videos.workspaceId, workspaceId),
         ownerUserId ? eq(videos.ownerUserId, ownerUserId) : undefined,
         normalizedQuery
-          ? ilike(videos.title, `%${normalizedQuery.replaceAll("%", "\\%")}%`)
+          ? ilike(videos.title, `%${escapeLikePattern(normalizedQuery)}%`)
           : undefined,
       ),
     )
@@ -160,6 +162,18 @@ export async function deleteVideo(workspaceId: string, videoId: string) {
   }
 
   await Promise.all([
+    // An interrupted recorder leaves a multipart upload open; aborting it
+    // frees the parts that `DeleteObjects` on the final key would not touch.
+    video.multipartUploadId
+      ? abortMultipartUpload({
+          key: video.sourceObjectKey,
+          uploadId: video.multipartUploadId,
+        }).catch((error) => {
+          if (!isMissingUploadError(error)) {
+            throw error;
+          }
+        })
+      : Promise.resolve(),
     deleteObjects([video.sourceObjectKey]),
     deleteObjectPrefix(`processed/${video.id}/`),
   ]);
@@ -169,4 +183,11 @@ export async function deleteVideo(workspaceId: string, videoId: string) {
       and(eq(videos.id, video.id), eq(videos.workspaceId, workspaceId)),
     );
   return true;
+}
+
+function isMissingUploadError(error: unknown) {
+  return (
+    error instanceof Error &&
+    (error.name === "NoSuchUpload" || error.name === "NotFound")
+  );
 }
