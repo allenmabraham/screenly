@@ -298,12 +298,73 @@ docker compose up --build
 The web image is a non-root, Next.js standalone production image. The Compose
 stack includes PostgreSQL and MinIO for development. On a new PostgreSQL volume,
 the committed migrations run in file-name order during database initialization.
+The `web` service waits on `/api/health/ready`, so it is reported healthy only
+once PostgreSQL and MinIO answer, and it sets `ALLOW_DEVELOPMENT_SECRETS=true`
+because the image otherwise refuses the stack's placeholder credentials.
 
 To process one uploaded video locally, install ffmpeg or run the worker profile:
 
 ```bash
 VIDEO_ID=<database-video-uuid> docker compose --profile processor run --rm worker
 ```
+
+## Production configuration and hardening
+
+The web service validates its whole environment once at boot
+(`apps/web/src/instrumentation.ts`). With `NODE_ENV=production` an instance
+logs a `fatal` entry and exits with status 1 instead of serving requests
+when:
+
+- `APP_URL` is missing or is not an `https` URL. Share links, invitation
+  emails and Slack unfurls are built from this value only; the request `Host`
+  header is used solely in development.
+- `SESSION_SECRET`, `UPLOAD_API_TOKEN` or `STORAGE_SECRET_ACCESS_KEY` still
+  contains a placeholder copied from `.env.example` or `docker-compose.yml`.
+- `SESSION_SECRET` is shorter than 32 characters, or `UPLOAD_API_TOKEN` is
+  set and shorter than 32 characters.
+- `PROCESSOR_MODE=cloud-run-job` without `GCP_PROJECT_ID`, `GCP_REGION` and
+  `GCP_PROCESSOR_JOB`.
+- Only one of `RESEND_API_KEY` and `RESEND_FROM_EMAIL` is set.
+
+On Cloud Run this surfaces as a failed revision rollout; on Vercel the
+function logs the same message and the request fails. The local Compose stack
+sets `ALLOW_DEVELOPMENT_SECRETS=true` to keep its throwaway credentials; never
+set that variable on a real deployment.
+
+Every response carries `Strict-Transport-Security`,
+`X-Content-Type-Options: nosniff`, `Referrer-Policy`, and a
+`Permissions-Policy` that disables camera, microphone and screen capture in
+the browser (recording happens in the native apps). All routes except the
+Slack unfurl player under `/embed/` also send `X-Frame-Options: DENY` and
+`Content-Security-Policy: frame-ancestors 'none'`. The `x-powered-by` header
+is disabled.
+
+Browser sign-in (`POST /api/auth/session`), device sign-in
+(`POST /api/auth/device/session`) and invitation acceptance
+(`POST /api/auth/invitations/:token`) are rate limited: ten failed attempts
+per account in fifteen minutes, or thirty failed attempts per client address
+in ten minutes, answer `429` with a `Retry-After` header until the window
+passes. A successful sign-in clears the account's counter. The counters live
+in process memory, so the per-address allowance scales with the number of
+running instances; the per-account limit is what protects an individual
+account, together with the scrypt cost of each attempt.
+
+Before routing production traffic, confirm each of the following, none of
+which the repository can provide:
+
+- Secret Manager (or Vercel environment) entries for `DATABASE_URL`,
+  `SESSION_SECRET`, the storage HMAC pair, and optionally `UPLOAD_API_TOKEN`,
+  `RESEND_API_KEY`, `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET`, each
+  generated rather than copied from an example.
+- DNS and TLS for the `APP_URL` hostname, and that hostname registered in the
+  Slack app's **App Unfurl Domains** when Slack playback is wanted.
+- A verified Resend sender for `RESEND_FROM_EMAIL`, otherwise invitations are
+  created with a copyable link and recorded as undelivered.
+- A private bucket with uniform access, the HMAC key described below, and the
+  incomplete-multipart lifecycle rule described above.
+- Apple Developer ID and notarization credentials for the macOS release
+  workflow, and optionally a Windows code-signing certificate; without them
+  the workflows build unsigned verification artifacts and skip publishing.
 
 ## Google Cloud
 
@@ -436,9 +497,20 @@ WORKSPACE_NAME=Screenly \
 pnpm user:bootstrap
 ```
 
-The service health endpoint is `/api/health`. Set
-`DATABASE_MAX_CONNECTIONS` conservatively per Cloud Run instance (the default
-is 5); each processor instance uses one connection.
+Two health endpoints are available. `/api/health` is a liveness probe that
+only confirms the process answers. `/api/health/ready` is a readiness probe
+that validates the environment, runs `select 1` against PostgreSQL, and lists
+one object from the bucket, returning `503` with a per-check breakdown when a
+dependency is unavailable; use it for load balancer health checks and for the
+Compose `healthcheck`. Set `DATABASE_MAX_CONNECTIONS` conservatively per
+Cloud Run instance (the default is 5); each processor instance uses one
+connection.
+
+Add a lifecycle rule to the bucket that aborts incomplete multipart uploads
+after a few days. The API aborts uploads that recorders discard or that
+members delete from the library, but a recorder that loses power mid-upload
+never sends either request, and the orphaned parts are billed until the
+bucket cleans them up.
 
 The worker pool atomically claims queued rows with PostgreSQL
 `FOR UPDATE SKIP LOCKED`. Database leases prevent duplicate instances from
@@ -449,6 +521,12 @@ video ready. A one-shot job receives a `VIDEO_ID` override and uses the same
 pipeline.
 
 ## Continuous deployment
+
+Every pull request runs the `CI` workflow (`.github/workflows/ci.yml`): a
+production dependency audit that fails on high or critical advisories,
+`pnpm test`, `lint`, `typecheck`, both builds, the desktop bundle, a Compose
+configuration check, and both container image builds with a boot smoke test
+of each image. Nothing is deployed from pull requests.
 
 Production is split between two platforms:
 
@@ -729,6 +807,7 @@ published; `WINDOWS_APP_*`, `LINUX_APPIMAGE_*`, and `LINUX_DEB_*` accept the sam
 ## Current verification commands
 
 ```bash
+pnpm audit --prod --audit-level high
 pnpm test
 pnpm lint
 pnpm typecheck
@@ -742,10 +821,13 @@ xcodebuild -project apps/mac/Screenly.xcodeproj -scheme Screenly build
 pnpm --filter @screenly/desktop package:windows   # or package:linux
 ```
 
-`pnpm test` covers the pure helpers (`format`, `format-processing`, `processing`,
-`release`, `platform`, `slack`, `gcp-auth`), the worker's config, loop, progress
-and media modules, and the desktop recorder's upload, sign-in, settings, and
-capture-geometry modules. UI behaviour is verified against a running instance: point a browser at
+`pnpm test` covers the pure helpers (`env`, `rate-limit`, `search`, `format`,
+`format-processing`, `processing`, `release`, `platform`, `slack`,
+`gcp-auth`), the worker's config, loop, progress and media modules, and the
+desktop recorder's upload, sign-in, settings, and capture-geometry modules.
+Two development-only transitive advisories without a published fix (`braces`
+under `eslint-config-next`, `sprintf-js` under `electron-builder`) remain in
+the full `pnpm audit`; neither package ships in a production image or bundle. UI behaviour is verified against a running instance: point a browser at
 a seeded local database and check the viewer, library, settings and auth flows,
 including playback, keyboard shortcuts, hover previews, live processing updates,
 and both themes at desktop and mobile widths.
