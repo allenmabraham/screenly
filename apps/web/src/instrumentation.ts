@@ -8,18 +8,6 @@ export async function register() {
     return;
   }
 
-  const { getServerEnv } = await import("@/lib/env");
-
-  try {
-    getServerEnv();
-  } catch (error) {
-    console.error(
-      JSON.stringify({
-        level: "fatal",
-        message: "Screenly web cannot start with the current environment.",
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    );
-    throw error;
-  }
+  const { assertBootEnvironment } = await import("@/lib/boot");
+  assertBootEnvironment();
 }
