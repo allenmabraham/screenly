@@ -442,9 +442,13 @@ instance's memory limit. A 512 MiB instance therefore cannot process a
 recording much larger than ~150 MB. Either raise `--memory` to roughly three
 times the largest expected source file, or mount a volume with
 `--add-volume` / `--add-volume-mount` and point `PROCESSING_TEMP_DIR` at it so
-scratch files leave the memory budget. Recordings that exceed the limit fail
-after `PROCESSING_MAX_ATTEMPTS` with the processor's out-of-memory restarts
-visible in Cloud Logging. Google Cloud's current pricing example for one
+scratch files leave the memory budget. Before downloading, the worker compares
+the recording's size against the free space in `PROCESSING_TEMP_DIR` and fails
+the attempt with an `Insufficient scratch space` error that names both
+numbers, so an undersized processor shows up as a clear `processing_error`
+rather than a series of out-of-memory restarts. Recordings that pass the check
+but still need more room for transcoding or HLS packaging can still exhaust
+the limit, which is why the memory should be sized generously. Google Cloud's current pricing example for one
 1-vCPU/512-MiB worker-pool instance in a standard region is about $11.61 per
 month after its listed free tier; actual region, account-wide free-tier usage,
 and resource limits change that amount. Every additional instance adds
