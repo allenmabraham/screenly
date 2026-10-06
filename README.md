@@ -432,7 +432,19 @@ gcloud run worker-pools deploy screenly-processor-pool \
 Do not set `VIDEO_ID` on the worker pool. Without it, the worker continuously
 claims the oldest completed upload. Start with the same CPU and memory that are
 known to process recordings successfully, then tune those limits from Cloud
-Monitoring if needed. Google Cloud's current pricing example for one
+Monitoring if needed.
+
+Size the processor's memory against the largest recording it must handle. The
+worker stages the source download, the transcoded MP4, the preview assets and
+any HLS segments under `PROCESSING_TEMP_DIR` (`/tmp/screenly` by default), and
+on Cloud Run `/tmp` is an in-memory filesystem that counts toward the
+instance's memory limit. A 512 MiB instance therefore cannot process a
+recording much larger than ~150 MB. Either raise `--memory` to roughly three
+times the largest expected source file, or mount a volume with
+`--add-volume` / `--add-volume-mount` and point `PROCESSING_TEMP_DIR` at it so
+scratch files leave the memory budget. Recordings that exceed the limit fail
+after `PROCESSING_MAX_ATTEMPTS` with the processor's out-of-memory restarts
+visible in Cloud Logging. Google Cloud's current pricing example for one
 1-vCPU/512-MiB worker-pool instance in a standard region is about $11.61 per
 month after its listed free tier; actual region, account-wide free-tier usage,
 and resource limits change that amount. Every additional instance adds

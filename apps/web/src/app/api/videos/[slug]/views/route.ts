@@ -3,6 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { videos, videoViews } from "@/db/schema";
 import { apiErrorResponse } from "@/lib/api";
+import { getClientAddress, getViewLimiter } from "@/lib/rate-limit";
 import { getRequestAuth } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -18,6 +19,22 @@ export async function POST(
       return Response.json({ viewCount: 1 });
     }
 
+    const viewLimiter = getViewLimiter();
+    const viewKey = `view:${getClientAddress(request)}:${slug}`;
+    if (!viewLimiter.check(viewKey).allowed) {
+      // Throttled callers still get the current count; the viewer treats this
+      // endpoint as fire-and-forget, so an error would only add noise.
+      const [current] = await getDb()
+        .select({ viewCount: videos.viewCount })
+        .from(videos)
+        .where(eq(videos.slug, slug))
+        .limit(1);
+      return current
+        ? Response.json({ viewCount: current.viewCount, throttled: true })
+        : notFoundResponse();
+    }
+    viewLimiter.record(viewKey);
+
     const [video] = await getDb()
       .update(videos)
       .set({
@@ -28,15 +45,7 @@ export async function POST(
       .returning({ id: videos.id, viewCount: videos.viewCount });
 
     if (!video) {
-      return Response.json(
-        {
-          error: {
-            code: "video_not_found",
-            message: "This video does not exist or has been removed.",
-          },
-        },
-        { status: 404 },
-      );
+      return notFoundResponse();
     }
 
     const authentication = await getRequestAuth(request);
@@ -65,4 +74,16 @@ export async function POST(
   } catch (error) {
     return apiErrorResponse(error);
   }
+}
+
+function notFoundResponse() {
+  return Response.json(
+    {
+      error: {
+        code: "video_not_found",
+        message: "This video does not exist or has been removed.",
+      },
+    },
+    { status: 404 },
+  );
 }

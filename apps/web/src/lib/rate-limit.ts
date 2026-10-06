@@ -163,6 +163,28 @@ type CredentialLimiters = {
 };
 
 const CREDENTIAL_LIMITERS_KEY = Symbol.for("screenly.credentialRateLimiters");
+const VIEW_LIMITER_KEY = Symbol.for("screenly.viewRateLimiter");
+
+/**
+ * Caps how often one client address can count a view of the same video.
+ * The browser already deduplicates per tab session; this stops a script from
+ * inflating the public counter with a loop of anonymous requests.
+ */
+export function getViewLimiter() {
+  const globalStore = globalThis as typeof globalThis & {
+    [VIEW_LIMITER_KEY]?: SlidingWindowRateLimiter;
+  };
+
+  if (!globalStore[VIEW_LIMITER_KEY]) {
+    globalStore[VIEW_LIMITER_KEY] = new SlidingWindowRateLimiter({
+      limit: 5,
+      windowMs: 10 * 60 * 1_000,
+      maxKeys: 50_000,
+    });
+  }
+
+  return globalStore[VIEW_LIMITER_KEY];
+}
 
 /**
  * Limiters shared by every credential endpoint (browser sign-in, device
