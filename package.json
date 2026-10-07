@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter @screenly/web dev",
     "build": "pnpm --filter @screenly/web build && pnpm --filter @screenly/worker build",
-    "test": "tsx --test apps/worker/src/config.test.ts apps/worker/src/worker-loop.test.ts apps/worker/src/progress.test.ts apps/worker/src/media.test.ts apps/web/src/lib/processing.test.ts apps/web/src/lib/format-processing.test.ts apps/web/src/lib/slack.test.ts apps/web/src/lib/gcp-auth.test.ts apps/web/src/lib/release.test.ts apps/web/src/lib/platform.test.ts apps/web/src/lib/format.test.ts apps/desktop/src/core/server-url.test.ts apps/desktop/src/core/capture-geometry.test.ts apps/desktop/src/core/settings.test.ts apps/desktop/src/core/account.test.ts apps/desktop/src/core/multipart-uploader.test.ts",
+    "test": "tsx --test apps/worker/src/config.test.ts apps/worker/src/worker-loop.test.ts apps/worker/src/progress.test.ts apps/worker/src/media.test.ts apps/worker/src/scratch-space.test.ts apps/web/src/lib/env.test.ts apps/web/src/lib/search.test.ts apps/web/src/lib/rate-limit.test.ts apps/web/src/lib/processing.test.ts apps/web/src/lib/format-processing.test.ts apps/web/src/lib/slack.test.ts apps/web/src/lib/gcp-auth.test.ts apps/web/src/lib/release.test.ts apps/web/src/lib/platform.test.ts apps/web/src/lib/format.test.ts apps/desktop/src/core/server-url.test.ts apps/desktop/src/core/capture-geometry.test.ts apps/desktop/src/core/settings.test.ts apps/desktop/src/core/account.test.ts apps/desktop/src/core/multipart-uploader.test.ts",
     "lint": "pnpm --filter @screenly/web lint",
     "typecheck": "pnpm --filter @screenly/web typecheck && pnpm --filter @screenly/worker typecheck && pnpm --filter @screenly/desktop typecheck",
     "db:generate": "pnpm --filter @screenly/web db:generate",

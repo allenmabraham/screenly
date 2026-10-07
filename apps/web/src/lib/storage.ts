@@ -234,6 +234,23 @@ export async function deleteObjectPrefix(prefix: string) {
   } while (continuationToken);
 }
 
+/**
+ * Cheapest authenticated round-trip to the bucket. Listing is already a
+ * required permission (see `deleteObjectPrefix`), so a readiness probe never
+ * demands more access than the application itself.
+ */
+export async function checkStorageConnectivity(abortSignal?: AbortSignal) {
+  const env = getServerEnv();
+
+  await getStorageClient().send(
+    new ListObjectsV2Command({
+      Bucket: env.STORAGE_BUCKET,
+      MaxKeys: 1,
+    }),
+    { abortSignal },
+  );
+}
+
 function encodeObjectKey(key: string) {
   return key.split("/").map(encodeURIComponent).join("/");
 }

@@ -4,8 +4,10 @@ import { z } from "zod";
 import {
   acceptWorkspaceInvitation,
   getInvitation,
+  InvitationError,
 } from "@/features/auth/invitations";
 import { apiErrorResponse } from "@/lib/api";
+import { credentialAttempt, rateLimitedResponse } from "@/lib/rate-limit";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
@@ -46,7 +48,29 @@ export async function POST(
   try {
     const { token } = await params;
     const input = acceptanceSchema.parse(await request.json());
-    const result = await acceptWorkspaceInvitation({ token, ...input });
+    // Accepting with an existing account verifies that account's password, so
+    // this shares the sign-in limiter keyed by the submitted username.
+    const attempt = credentialAttempt(request, input.username);
+    const decision = attempt.check();
+    if (!decision.allowed) {
+      return rateLimitedResponse(decision);
+    }
+
+    let result: Awaited<ReturnType<typeof acceptWorkspaceInvitation>>;
+    try {
+      result = await acceptWorkspaceInvitation({ token, ...input });
+    } catch (error) {
+      if (
+        error instanceof InvitationError &&
+        (error.code === "invalid_credentials" ||
+          error.code === "invitation_invalid")
+      ) {
+        attempt.failure();
+      }
+      throw error;
+    }
+
+    attempt.success();
     const response = NextResponse.json({
       authenticated: true,
       user: result.user,

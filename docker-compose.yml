@@ -4,6 +4,10 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     environment:
+      # The production image refuses placeholder secrets and non-HTTPS APP_URL
+      # values at boot; this local stack opts out deliberately. Never set this
+      # on a real deployment.
+      ALLOW_DEVELOPMENT_SECRETS: "true"
       APP_URL: ${APP_URL:-http://localhost:3000}
       DATABASE_URL: postgresql://screenly:screenly-local-postgres-password@postgres:5432/screenly
       PROCESSOR_MODE: ${PROCESSOR_MODE:-manual}
@@ -33,7 +37,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 3s

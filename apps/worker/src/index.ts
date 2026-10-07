@@ -16,6 +16,7 @@ import {
   ProcessingProgressReporter,
   TransferRateEstimator,
 } from "./progress.js";
+import { assertScratchSpace } from "./scratch-space.js";
 import { SlackNotifier } from "./slack.js";
 import { ObjectStorage } from "./storage.js";
 import {
@@ -214,6 +215,7 @@ async function processClaimedVideo(
         logAttemptCleanupError(video.id, storageError);
       });
       await mkdir(workDirectory, { recursive: true });
+      await assertScratchSpace(workDirectory, video.sizeBytes);
       await progress.beginStage("downloading");
       console.log(
         JSON.stringify({

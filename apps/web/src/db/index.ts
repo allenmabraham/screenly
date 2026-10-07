@@ -18,6 +18,12 @@ function createDatabase() {
 
   const client = postgres(databaseUrl, {
     max: maxConnections,
+    // Serverless and autoscaled instances must not pin idle connections to
+    // the database, and a hung connect must surface as an error quickly
+    // enough for the readiness probe and request timeouts to notice.
+    idle_timeout: 30,
+    connect_timeout: 10,
+    max_lifetime: 60 * 30,
     ...(cloudSqlInstance
       ? {
           path: `/cloudsql/${cloudSqlInstance}/.s.PGSQL.5432`,

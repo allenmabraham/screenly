@@ -9,6 +9,7 @@ import {
   authenticateUploadRequest,
   unauthorizedResponse,
 } from "@/lib/api";
+import { getPublicAppUrl } from "@/lib/env";
 import {
   abortMultipartUpload,
   createMultipartUpload,
@@ -72,10 +73,7 @@ export async function POST(request: Request) {
       multipartUploadId,
     });
 
-    const appUrl = (process.env.APP_URL ?? new URL(request.url).origin).replace(
-      /\/$/,
-      "",
-    );
+    const appUrl = getPublicAppUrl(request);
 
     return Response.json(
       {
